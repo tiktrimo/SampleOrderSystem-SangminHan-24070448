@@ -1,5 +1,7 @@
 # SampleOrderSystem-SangminHan-24070448
 
+> **[POC Stage]** 현재 개념 검증(Proof of Concept) 단계입니다. POC 검증 완료 후 본 구현을 진행합니다.
+
 ## 반도체 시료 생산주문관리 시스템
 
 가상의 반도체 회사 "S-Semi"의 시료 생산·주문 관리를 위한 콘솔 기반 시스템입니다.
