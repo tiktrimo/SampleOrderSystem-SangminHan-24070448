@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.class
+target/
+.idea/
+*.iml
+.vscode/
+data/*.json
