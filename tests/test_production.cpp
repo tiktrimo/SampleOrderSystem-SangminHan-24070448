@@ -50,7 +50,7 @@ TEST(production_enqueue_increases_size) {
     ProductionService ps;
     Order o = makeProducingOrder("ORD-001", "S-001", 200);
     Sample s = makeSample("S-001", 0, 0.9, 0.5);
-    ps.enqueue(o, s);
+    ps.enqueue(o, s, o.quantity); // stock=0, 부족분=qty
     ASSERT_EQ(ps.queueSize(), 1);
 }
 
@@ -59,7 +59,7 @@ TEST(production_enqueue_calculates_actual_production) {
     ProductionService ps;
     Order o = makeProducingOrder("ORD-001", "S-001", 200);
     Sample s = makeSample("S-001", 0, 0.9, 0.5);
-    ps.enqueue(o, s);
+    ps.enqueue(o, s, o.quantity); // stock=0, 부족분=qty
     ASSERT_TRUE(ps.hasNext());
     auto item = ps.peek();
     ASSERT_EQ(item.actualProduction, 247);
@@ -70,8 +70,8 @@ TEST(production_fifo_order) {
     Order o1 = makeProducingOrder("ORD-001", "S-001", 100);
     Order o2 = makeProducingOrder("ORD-002", "S-001", 200);
     Sample s = makeSample("S-001", 0, 0.9, 0.5);
-    ps.enqueue(o1, s);
-    ps.enqueue(o2, s);
+    ps.enqueue(o1, s, o1.quantity);
+    ps.enqueue(o2, s, o2.quantity);
     auto item = ps.peek();
     ASSERT_EQ(item.orderId, std::string("ORD-001"));
 }
@@ -80,7 +80,7 @@ TEST(production_complete_changes_status_to_confirmed) {
     ProductionService ps;
     Order o = makeProducingOrder("ORD-001", "S-001", 200);
     Sample s = makeSample("S-001", 0, 0.9, 0.5);
-    ps.enqueue(o, s);
+    ps.enqueue(o, s, o.quantity);
     ps.complete(o, s);
     ASSERT_EQ(o.status, OrderStatus::CONFIRMED);
 }
@@ -89,7 +89,7 @@ TEST(production_complete_increases_stock) {
     ProductionService ps;
     Order o = makeProducingOrder("ORD-001", "S-001", 200);
     Sample s = makeSample("S-001", 0, 0.9, 0.5);
-    ps.enqueue(o, s);
+    ps.enqueue(o, s, o.quantity);
     int before = s.stock;
     ps.complete(o, s);
     ASSERT_GT(s.stock, before);
@@ -99,7 +99,7 @@ TEST(production_complete_decreases_queue_size) {
     ProductionService ps;
     Order o = makeProducingOrder("ORD-001", "S-001", 200);
     Sample s = makeSample("S-001", 0, 0.9, 0.5);
-    ps.enqueue(o, s);
+    ps.enqueue(o, s, o.quantity);
     ps.complete(o, s);
     ASSERT_EQ(ps.queueSize(), 0);
 }

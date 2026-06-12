@@ -127,6 +127,7 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
     auto sFound = sc.findById(o.sampleId);
     if (!sFound) { std::cout << "  " << C_RED << "✗ 시료 없음" << C_RST << "\n"; return; }
     Sample s = *sFound;
+    const int origStock = s.stock; // approve 전 재고 저장 (부족분 계산용)
 
     std::cout << "\n  " << C_DIM << "재고 확인 중..." << C_RST << "\n";
     std::cout << "  " << C_DIM << "시료    " << C_RST << "  " << s.name
@@ -145,7 +146,7 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
             return;
         }
     } else {
-        int shortage = o.quantity - s.stock;
+        int shortage = o.quantity - origStock;
         int actualProd = ProductionService::calcActualProduction(shortage, s.yield);
         double totalTime = ProductionService::calcTotalTime(s.avgProductionTimeMin, actualProd);
         std::cout << "  " << C_DIM << "부족분  " << C_RST << "  " << C_YLW << shortage << "ea" << C_RST << "\n";
@@ -165,9 +166,10 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
         }
     }
 
-    bool producing = (s.stock < o.quantity);
+    bool producing = (origStock < o.quantity);
+    int shortage = producing ? (o.quantity - origStock) : 0;
     OrderService::approve(o, s);
-    if (producing) ps.enqueue(o, s);
+    if (producing) ps.enqueue(o, s, shortage);
     sc.updateStock(s.id, s.stock - sFound->stock);
     sr.update(s);
     oc.updateOrder(o);
@@ -284,7 +286,7 @@ int main() {
     ProductionService ps;
     for (const auto& o : oc.getByStatus(OrderStatus::PRODUCING)) {
         auto s = sc.findById(o.sampleId);
-        if (s) ps.enqueue(o, *s);
+        if (s) ps.enqueue(o, *s, o.quantity); // 복원 시 재고=0, 부족분=전량
     }
 
     int choice = -1;

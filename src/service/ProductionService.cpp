@@ -9,8 +9,7 @@ double ProductionService::calcTotalTime(double avgTimeMin, int actualProduction)
     return avgTimeMin * actualProduction;
 }
 
-void ProductionService::enqueue(const Order& order, const Sample& sample) {
-    int shortage = order.quantity;
+void ProductionService::enqueue(const Order& order, const Sample& sample, int shortage) {
     int actual = calcActualProduction(shortage, sample.yield);
     double totalTime = calcTotalTime(sample.avgProductionTimeMin, actual);
 

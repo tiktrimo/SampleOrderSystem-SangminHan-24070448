@@ -21,7 +21,8 @@ public:
     // 총 생산 시간 = 평균 생산시간 * 실 생산량
     static double calcTotalTime(double avgTimeMin, int actualProduction);
 
-    void enqueue(const Order& order, const Sample& sample);
+    // shortage = 주문량 - 승인 시 기존 재고 (부족분)
+    void enqueue(const Order& order, const Sample& sample, int shortage);
     bool hasNext() const;
     ProductionItem peek() const;
     // 완료 처리: 큐에서 꺼내고 order 상태를 CONFIRMED로, sample 재고 증가

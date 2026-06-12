@@ -23,7 +23,7 @@ static void doApprove(const std::string& orderId,
     Order o = *oOpt; Sample s = *sOpt;
     int prevStock = s.stock;
     OrderService::approve(o, s);
-    if (o.status == OrderStatus::PRODUCING) ps.enqueue(o, s);
+    if (o.status == OrderStatus::PRODUCING) ps.enqueue(o, s, o.quantity - prevStock);
     oc.updateOrder(o);
     sc.updateStock(s.id, s.stock - prevStock);
 }
@@ -193,8 +193,8 @@ TEST(scenario_production_output_covers_order_quantity) {
     ASSERT_EQ(ps.queueSize(), 1);
 
     auto item = ps.peek();
-    // 실 생산량 = ceil(100 / (0.8 * 0.9)) = ceil(138.88) = 139
-    ASSERT_EQ(item.actualProduction, 139);
+    // stock=5, qty=100, 부족분=95, yield=0.8 -> ceil(95/(0.8*0.9)) = ceil(131.94) = 132
+    ASSERT_EQ(item.actualProduction, 132);
     ASSERT_GT(item.actualProduction, item.orderQuantity); // 손실 고려해 주문량 초과
 }
 
