@@ -16,4 +16,5 @@ public:
 
 private:
     std::vector<Sample> samples_;
+    bool exists(const std::string& id) const;
 };
