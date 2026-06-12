@@ -1,0 +1,34 @@
+[2026-06-12 10:31:40] [info] Start Program:
+Path:"C:\\Users\\User\\Downloads\\ProjectSemiConductor\\SampleOrderSystem-SangminHan-24070448\\x64\\Debug\\SampleOrderSystemTests.exe"
+Arguments:
+Working directory: not set.
+Modules: Selected: * Excluded: 
+Sources: Selected: C:\Users\User\Downloads\ProjectSemiConductor\SampleOrderSystem-SangminHan-24070448\src Excluded: 
+Log Level: Normal
+Cover Children: 0
+Aggregate by file: 1
+Continue after C++ exception: 0
+Optimized build support: 0
+Export: cobertura C:\Users\User\Downloads\ProjectSemiConductor\SampleOrderSystem-SangminHan-24070448\coverage2.xml 
+Input coverage: 
+Unified diff: 
+Excluded line regular expressions: 
+Substitute pdb source paths: 
+[2026-06-12 10:31:40] [info] Module: C:\Users\User\Downloads\ProjectSemiConductor\SampleOrderSystem-SangminHan-24070448\x64\Debug\SampleOrderSystemTests.exe is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\ntdll.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\kernel32.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\KernelBase.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\msvcp140d.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\vcruntime140_1d.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\vcruntime140d.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\vcruntime140d.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\ucrtbased.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\ucrtbased.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\ucrtbased.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\ucrtbased.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\kernel.appcore.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] Module: C:\Windows\System32\msvcrt.dll is selected because it matches selected pattern: *
+[2026-06-12 10:31:40] [info] ----------------------------------------------------
+[2026-06-12 10:31:40] [info] Cobertura report generated: C:\Users\User\Downloads\ProjectSemiConductor\SampleOrderSystem-SangminHan-24070448\coverage2.xml
+[2026-06-12 10:31:40] [info] ----------------------------------------------------
+[2026-06-12 10:31:40] [info] The code coverage report is not what you expect? See the FAQ https://github.com/OpenCppCoverage/OpenCppCoverage/wiki/FAQ.

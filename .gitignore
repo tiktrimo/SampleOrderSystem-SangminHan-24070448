@@ -26,8 +26,3 @@ ipch/
 # Data files
 data/
 *.dat
-
-# Coverage
-*.log
-*.xml
-coverage_report/
