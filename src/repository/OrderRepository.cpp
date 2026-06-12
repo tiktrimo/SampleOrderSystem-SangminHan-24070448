@@ -32,12 +32,16 @@ Order OrderRepository::parseLine(const std::string& line) {
     std::getline(ss, o.customerName, '|');
     std::getline(ss, tok, '|'); o.quantity = std::stoi(tok);
     std::getline(ss, tok, '|'); o.status = stringToOrderStatus(tok);
+    if (std::getline(ss, tok, '|')) {
+        try { o.shortage = std::stoi(tok); } catch (...) {}
+    }
     return o;
 }
 
 std::string OrderRepository::toLine(const Order& o) {
     return o.orderId + "|" + o.sampleId + "|" + o.customerName + "|" +
-        std::to_string(o.quantity) + "|" + orderStatusToString(o.status);
+        std::to_string(o.quantity) + "|" + orderStatusToString(o.status) + "|" +
+        std::to_string(o.shortage);
 }
 
 void OrderRepository::save(const Order& item) {

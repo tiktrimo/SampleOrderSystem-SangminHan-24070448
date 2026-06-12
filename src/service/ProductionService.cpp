@@ -18,6 +18,7 @@ void ProductionService::enqueue(const Order& order, const Sample& sample, int sh
     item.sampleId = sample.id;
     item.sampleName = sample.name;
     item.orderQuantity = order.quantity;
+    item.shortage = shortage;
     item.actualProduction = actual;
     item.totalTimeMin = totalTime;
     item.startTime = time(nullptr);

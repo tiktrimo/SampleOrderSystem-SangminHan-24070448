@@ -4,10 +4,8 @@ bool OrderService::approve(Order& order, Sample& sample) {
     if (order.status != OrderStatus::RESERVED) return false;
 
     if (sample.stock >= order.quantity) {
-        sample.stock -= order.quantity;
         order.status = OrderStatus::CONFIRMED;
     } else {
-        sample.stock = 0;
         order.status = OrderStatus::PRODUCING;
     }
     return true;

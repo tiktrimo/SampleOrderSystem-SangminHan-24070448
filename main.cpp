@@ -49,6 +49,29 @@ static void setCursorVisible(bool visible) {
     SetConsoleCursorInfo(h, &cci);
 }
 
+// ── 생산 자동 완료 ────────────────────────────────────────────────────────────
+// 메인 루프 상단에서 호출 — 시간이 지난 생산 항목을 즉시 CONFIRMED 처리
+static void autoCompleteProduction(OrderController& oc, SampleController& sc,
+                                   OrderRepository& or_, SampleRepository& sr,
+                                   ProductionService& ps) {
+    while (ps.hasNext()) {
+        auto item  = ps.peek();
+        double elap = difftime(time(nullptr), item.startTime);
+        if (item.totalTimeMin > 0 && elap < item.totalTimeMin) break;
+
+        auto oFound = oc.findById(item.orderId);
+        auto sFound = sc.findById(item.sampleId);
+        if (!oFound || !sFound) break;
+
+        Order o = *oFound; Sample s = *sFound;
+        auto done = ps.complete(o, s);
+        for (auto& ord : oc.orders_)
+            if (ord.orderId == o.orderId) { ord = o; break; }
+        sc.updateStock(s.id, done.actualProduction);
+        or_.update(o); sr.update(s);
+    }
+}
+
 // ── 메뉴 함수 ─────────────────────────────────────────────────────────────────
 
 static void menuSampleManage(SampleController& sc, SampleRepository& sr) {
@@ -184,7 +207,7 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
         std::cout << "\n  " << C_YLW << "▲ 재고 부족" << C_RST
                   << "  부족분 " << C_BOLD << shortage << "ea" << C_RST
                   << " 승인 시 생산 등록"
-                  << C_DIM << "  (실생산량 " << actualProd << "ea / " << totalTime << "min)" << C_RST << "\n";
+                  << C_DIM << "  (실생산량 " << actualProd << "ea / " << totalTime << "sec)" << C_RST << "\n";
         std::cout << "  " << C_BWHT << "[Y]" << C_RST << " 승인  "
                   << C_RED  << "[N]" << C_RST << " 주문 거절 " << C_CYN << "›" << C_RST << " ";
         std::cin >> yn; std::cin.ignore();
@@ -199,10 +222,9 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
 
     bool producing = (origStock < o.quantity);
     int shortage = producing ? (o.quantity - origStock) : 0;
+    o.shortage = shortage;
     OrderService::approve(o, s);
     if (producing) ps.enqueue(o, s, shortage);
-    sc.updateStock(s.id, s.stock - sFound->stock);
-    sr.update(s);
     oc.updateOrder(o);
     or_.update(o);
 
@@ -331,7 +353,8 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
     }
 }
 
-static void menuRelease(OrderController& oc, OrderRepository& or_) {
+static void menuRelease(OrderController& oc, SampleController& sc,
+                        OrderRepository& or_, SampleRepository& sr) {
     auto confirmed = oc.getByStatus(OrderStatus::CONFIRMED);
     if (confirmed.empty()) {
         std::cout << "\n  " << C_DIM << "출고 대기 주문 없음" << C_RST << "\n";
@@ -373,6 +396,13 @@ static void menuRelease(OrderController& oc, OrderRepository& or_) {
         std::cout << "  " << C_RED << "✗ 출고 불가 상태" << C_RST << "\n";
         return;
     }
+    // 출고 시 재고 차감 (order.quantity 만큼)
+    auto sFound = sc.findById(o.sampleId);
+    if (sFound) {
+        sc.updateStock(o.sampleId, -o.quantity);
+        auto sUpdated = sc.findById(o.sampleId);
+        if (sUpdated) sr.update(*sUpdated);
+    }
     for (auto& ord : oc.orders_) {
         if (ord.orderId == oid) { ord = o; break; }
     }
@@ -380,6 +410,14 @@ static void menuRelease(OrderController& oc, OrderRepository& or_) {
     std::cout << "  " << C_BLU << "↑ 출고 완료" << C_RST << "  "
               << C_BOLD << oid << C_RST << "  "
               << C_BLU << "→ RELEASE" << C_RST << "\n";
+    if (sFound) {
+        auto sNow = sc.findById(o.sampleId);
+        int stock = sNow ? sNow->stock : 0;
+        std::cout << "  " << C_DIM << "재고" << C_RST << "  "
+                  << C_BWHT << sFound->stock << C_RST
+                  << C_DIM << " → " << C_RST
+                  << (stock >= 0 ? C_GRN : C_RED) << C_BOLD << stock << "ea" << C_RST << "\n";
+    }
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
@@ -407,23 +445,45 @@ int main() {
     ProductionService ps;
     for (const auto& o : oc.getByStatus(OrderStatus::PRODUCING)) {
         auto s = sc.findById(o.sampleId);
-        if (s) ps.enqueue(o, *s, o.quantity); // 복원 시 재고=0, 부족분=전량
+        int restoreShortage = o.shortage > 0 ? o.shortage : o.quantity;
+        if (s) ps.enqueue(o, *s, restoreShortage);
     }
 
     int choice = -1;
     while (choice != 0) {
-        auto snap     = MonitorService::buildSnapshot(oc.getAll(), sc.getAll());
-        int producing = ps.queueSize(); // 실제 생산 큐 기준 (order status 불일치 방지)
-        ConsoleView::showMainMenu(sc.getSampleCount(), sc.getTotalStock(),
+        autoCompleteProduction(oc, sc, or_, sr, ps);
+        int producing = ps.queueSize();
+        int displayStock = sc.getTotalStock();
+        if (ps.hasNext()) {
+            auto item = ps.peek();
+            double elap = difftime(time(nullptr), item.startTime);
+            double prog = std::min(1.0, item.totalTimeMin > 0 ? elap / item.totalTimeMin : 1.0);
+            displayStock += static_cast<int>(prog * item.actualProduction);
+        }
+        ConsoleView::showMainMenu(sc.getSampleCount(), displayStock,
                                   oc.getOrderCount(), producing);
         std::cin >> choice; std::cin.ignore();
         switch (choice) {
         case 1: menuSampleManage(sc, sr); break;
         case 2: menuPlaceOrder(oc, sc, or_); break;
         case 3: menuApproveReject(oc, sc, or_, sr, ps); break;
-        case 4: ConsoleView::showMonitor(snap); break;
+        case 4: {
+            autoCompleteProduction(oc, sc, or_, sr, ps);
+            auto snap = MonitorService::buildSnapshot(oc.getAll(), sc.getAll());
+            // 생산 진행 중인 항목의 현재 생산량을 재고에 반영 (표시 전용)
+            if (ps.hasNext()) {
+                auto item = ps.peek();
+                double elap = difftime(time(nullptr), item.startTime);
+                double prog = std::min(1.0, item.totalTimeMin > 0 ? elap / item.totalTimeMin : 1.0);
+                int curProd = static_cast<int>(prog * item.actualProduction);
+                for (auto& info : snap.stockInfos)
+                    if (info.sample.id == item.sampleId) { info.sample.stock += curProd; break; }
+            }
+            ConsoleView::showMonitor(snap);
+            break;
+        }
         case 5: menuProductionLine(oc, sc, or_, sr, ps); break;
-        case 6: menuRelease(oc, or_); break;
+        case 6: menuRelease(oc, sc, or_, sr); break;
         case 0: std::cout << "\n  " << C_DIM << "종료합니다." << C_RST << "\n"; break;
         default: std::cout << "  " << C_RED << "✗ 잘못된 입력" << C_RST << "\n";
         }

@@ -198,7 +198,7 @@ void ConsoleView::showSamples(const std::vector<Sample>& samples) {
         const char* stk = s.stock == 0 ? RED : (s.stock < 20 ? YLW : GRN);
         std::cout << rpad(s.id,   10)
                   << rpad(s.name, 22)
-                  << rpad(std::to_string(s.avgProductionTimeMin) + "min", 12)
+                  << rpad(std::to_string(s.avgProductionTimeMin) + "sec", 12)
                   << rpad(std::to_string(s.yield), 12)
                   << stk << BOLD << s.stock << "ea" << RST << "\n";
     }
@@ -289,7 +289,7 @@ void ConsoleView::showProductionQueue(ProductionService& ps) {
     std::cout << "  " << rpad(std::string(DWHT) + "실생산량" + RST, 8 + 9)
               << GRN << BOLD << cur.actualProduction << "ea" << RST << "\n";
     std::cout << "  " << rpad(std::string(DWHT) + "생산시간" + RST, 8 + 9)
-              << cur.totalTimeMin << "min\n";
+              << cur.totalTimeMin << "sec\n";
 
     if (items.size() > 1) {
         std::cout << "\n  " << BOLD << BWHT << "[ 대기 중인 주문 — FIFO 순 ]" << RST << "\n";
@@ -309,7 +309,7 @@ void ConsoleView::showProductionQueue(ProductionService& ps) {
                       << rpad(it.sampleName, 16)
                       << rpad(std::to_string(it.orderQuantity)    + "ea", 10)
                       << rpad(std::to_string(it.actualProduction) + "ea", 10)
-                      << it.totalTimeMin << "min\n";
+                      << it.totalTimeMin << "sec\n";
         }
     }
 }

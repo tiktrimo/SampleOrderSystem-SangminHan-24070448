@@ -11,9 +11,10 @@ struct ProductionItem {
     std::string sampleId;
     std::string sampleName;
     int orderQuantity = 0;
+    int shortage = 0;       // 실제 부족분 (주문량 - 승인 시 재고)
     int actualProduction = 0;
     double totalTimeMin = 0.0;
-    std::time_t startTime = 0; // enqueue 시각 (Unix timestamp)
+    std::time_t startTime = 0;
 };
 
 class ProductionService {

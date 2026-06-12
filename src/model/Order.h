@@ -18,4 +18,5 @@ struct Order {
     std::string customerName;
     int quantity = 0;
     OrderStatus status = OrderStatus::RESERVED;
+    int shortage = 0; // 승인 시 부족분 (PRODUCING인 경우만 >0), 출고 복원용
 };
