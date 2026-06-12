@@ -43,7 +43,10 @@ bool OrderController::updateOrder(const Order& order) {
 }
 
 int OrderController::getOrderCount() const {
-    return static_cast<int>(orders_.size());
+    int count = 0;
+    for (const auto& o : orders_)
+        if (o.status != OrderStatus::REJECTED) count++;
+    return count;
 }
 
 std::string OrderController::generateOrderId() {
