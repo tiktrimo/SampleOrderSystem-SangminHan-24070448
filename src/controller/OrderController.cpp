@@ -1,4 +1,6 @@
 #include "OrderController.h"
+#include <algorithm>
+#include <iterator>
 #include <ctime>
 #include <sstream>
 #include <iomanip>
@@ -26,31 +28,30 @@ std::vector<Order> OrderController::getAll() const {
 
 std::vector<Order> OrderController::getByStatus(OrderStatus status) const {
     std::vector<Order> result;
-    for (const auto& o : orders_) {
-        if (o.status == status) result.push_back(o);
-    }
+    std::copy_if(orders_.begin(), orders_.end(), std::back_inserter(result),
+        [&](const Order& o) { return o.status == status; });
     return result;
 }
 
 std::optional<Order> OrderController::findById(const std::string& orderId) const {
-    for (const auto& o : orders_) {
-        if (o.orderId == orderId) return o;
-    }
-    return std::nullopt;
+    auto it = std::find_if(orders_.begin(), orders_.end(),
+        [&](const Order& o) { return o.orderId == orderId; });
+    return it != orders_.end() ? std::optional<Order>(*it) : std::nullopt;
 }
 
 bool OrderController::updateOrder(const Order& order) {
-    for (auto& o : orders_) {
-        if (o.orderId == order.orderId) { o = order; return true; }
-    }
-    return false;
+    auto it = std::find_if(orders_.begin(), orders_.end(),
+        [&](const Order& o) { return o.orderId == order.orderId; });
+    if (it == orders_.end()) return false;
+    *it = order;
+    return true;
 }
 
 int OrderController::getOrderCount() const {
-    int count = 0;
-    for (const auto& o : orders_)
-        if (o.status != OrderStatus::REJECTED && o.status != OrderStatus::RELEASE) count++;
-    return count;
+    return static_cast<int>(std::count_if(orders_.begin(), orders_.end(),
+        [](const Order& o) {
+            return o.status != OrderStatus::REJECTED && o.status != OrderStatus::RELEASE;
+        }));
 }
 
 void OrderController::syncSequence() {

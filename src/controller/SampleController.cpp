@@ -1,5 +1,7 @@
 #include "SampleController.h"
 #include <algorithm>
+#include <iterator>
+#include <numeric>
 
 void SampleController::addSample(const Sample& sample) {
     if (exists(sample.id)) return;
@@ -11,30 +13,24 @@ std::vector<Sample> SampleController::getAll() const {
 }
 
 std::optional<Sample> SampleController::findById(const std::string& id) const {
-    for (const auto& s : samples_) {
-        if (s.id == id) return s;
-    }
-    return std::nullopt;
+    auto it = std::find_if(samples_.begin(), samples_.end(),
+        [&](const Sample& s) { return s.id == id; });
+    return it != samples_.end() ? std::optional<Sample>(*it) : std::nullopt;
 }
 
 std::vector<Sample> SampleController::searchByName(const std::string& keyword) const {
     std::vector<Sample> result;
-    for (const auto& s : samples_) {
-        if (s.name.find(keyword) != std::string::npos) {
-            result.push_back(s);
-        }
-    }
+    std::copy_if(samples_.begin(), samples_.end(), std::back_inserter(result),
+        [&](const Sample& s) { return s.name.find(keyword) != std::string::npos; });
     return result;
 }
 
 bool SampleController::updateStock(const std::string& id, int delta) {
-    for (auto& s : samples_) {
-        if (s.id == id) {
-            s.stock += delta;
-            return true;
-        }
-    }
-    return false;
+    auto it = std::find_if(samples_.begin(), samples_.end(),
+        [&](const Sample& s) { return s.id == id; });
+    if (it == samples_.end()) return false;
+    it->stock += delta;
+    return true;
 }
 
 int SampleController::getSampleCount() const {
@@ -42,14 +38,11 @@ int SampleController::getSampleCount() const {
 }
 
 int SampleController::getTotalStock() const {
-    int total = 0;
-    for (const auto& s : samples_) total += s.stock;
-    return total;
+    return std::accumulate(samples_.begin(), samples_.end(), 0,
+        [](int sum, const Sample& s) { return sum + s.stock; });
 }
 
 bool SampleController::exists(const std::string& id) const {
-    for (const auto& s : samples_) {
-        if (s.id == id) return true;
-    }
-    return false;
+    return std::any_of(samples_.begin(), samples_.end(),
+        [&](const Sample& s) { return s.id == id; });
 }
