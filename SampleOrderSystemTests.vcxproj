@@ -74,9 +74,11 @@
   <ItemGroup>
     <ClCompile Include="tests\test_main.cpp" />
     <ClCompile Include="tests\test_sample.cpp" />
+    <ClCompile Include="tests\test_order.cpp" />
     <ClCompile Include="src\model\Order.cpp" />
     <ClCompile Include="src\controller\SampleController.cpp" />
     <ClCompile Include="src\repository\SampleRepository.cpp" />
+    <ClCompile Include="src\controller\OrderController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests\TestRunner.h" />
