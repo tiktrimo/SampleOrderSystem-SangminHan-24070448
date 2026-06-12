@@ -78,6 +78,8 @@
     <ClCompile Include="tests\test_order_service.cpp" />
     <ClCompile Include="tests\test_production.cpp" />
     <ClCompile Include="tests\test_monitor.cpp" />
+    <ClCompile Include="tests\test_repository.cpp" />
+    <ClCompile Include="tests\test_scenario.cpp" />
     <ClCompile Include="src\model\Order.cpp" />
     <ClCompile Include="src\controller\SampleController.cpp" />
     <ClCompile Include="src\repository\SampleRepository.cpp" />
