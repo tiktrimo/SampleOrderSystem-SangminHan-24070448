@@ -1,10 +1,27 @@
-__pycache__/
-*.pyc
-*.pyo
-.env
-*.class
-target/
-.idea/
-*.iml
-.vscode/
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.aps
+*.ncb
+*.sdf
+*.opensdf
+*.vcxproj.filters
+*.vcxproj.user
+
+# Build output
+Debug/
+Release/
+x64/
+x86/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.exe
+*.dll
+ipch/
+
+# Data files
 data/*.json

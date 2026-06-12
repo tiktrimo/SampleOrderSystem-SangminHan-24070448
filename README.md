@@ -6,9 +6,11 @@
 
 가상의 반도체 회사 "S-Semi"의 시료 생산·주문 관리를 위한 콘솔 기반 시스템입니다.
 
-## 시스템 개요
+## 개발 환경
 
-주문 급증으로 인한 엑셀/메모장 기반 관리의 한계를 극복하기 위해 개발하는 체계적인 시료 생산주문관리 시스템입니다.
+- **언어**: C++
+- **IDE**: Visual Studio
+- **빌드**: Visual Studio Solution (.sln)
 
 ## 주요 기능
 
@@ -37,12 +39,14 @@ RESERVED → (승인) → 재고 충분 → CONFIRMED → RELEASE
 ## 프로젝트 구조
 
 ```
-src/
-  model/       - 도메인 객체 (Sample, Order, ProductionLine)
-  controller/  - 비즈니스 로직
-  view/        - 콘솔 UI
-  repository/  - 데이터 영속성 (JSON)
-  service/     - 주문·생산 서비스 레이어
-data/          - JSON 데이터 저장소
-docs/          - 문서 (PRD 등)
+SampleOrderSystem-SangminHan-24070448/
+  src/
+    model/       - 도메인 객체 (Sample.h, Order.h, ProductionLine.h)
+    controller/  - 비즈니스 로직 (*.h, *.cpp)
+    view/        - 콘솔 UI (*.h, *.cpp)
+    repository/  - JSON 데이터 영속성 (*.h, *.cpp)
+    service/     - 주문·생산 서비스 레이어 (*.h, *.cpp)
+  data/          - JSON 데이터 저장소
+  docs/          - PRD 등 문서
+  SampleOrderSystem.sln
 ```
