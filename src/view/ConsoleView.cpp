@@ -31,6 +31,25 @@ namespace {
         return w;
     }
 
+    // ANSI 이스케이프 시퀀스를 제외한 실제 표시 너비
+    int ansiDw(const std::string& s) {
+        int w = 0;
+        for (size_t i = 0; i < s.size(); ) {
+            if (s[i] == '\033' && i + 1 < s.size() && s[i+1] == '[') {
+                i += 2;
+                while (i < s.size() && !(s[i] >= 0x40 && s[i] <= 0x7E)) i++;
+                if (i < s.size()) i++;
+            } else {
+                unsigned char c = static_cast<unsigned char>(s[i]);
+                if      (c < 0x80) { w += 1; i += 1; }
+                else if (c < 0xE0) { w += 1; i += 2; }
+                else if (c < 0xF0) { w += 2; i += 3; }
+                else               { w += 2; i += 4; }
+            }
+        }
+        return w;
+    }
+
     // 화면 너비 기준 우측 패딩
     std::string rpad(const std::string& s, int width) {
         int pad = std::max(0, width - dw(s));
@@ -38,6 +57,8 @@ namespace {
     }
 
     // ── 박스 드로잉 ──────────────────────────────────────────────────────────
+    // BOX_W: │와 │ 사이의 표시 너비 (내부 콘텐츠 영역 포함)
+    constexpr int BOX_W = 56;
 
     void hline(int n = 50) {
         std::cout << DWHT;
@@ -45,28 +66,31 @@ namespace {
         std::cout << RST << "\n";
     }
 
-    void borderTop(int n = 52) {
+    void borderTop() {
         std::cout << DWHT << "╭";
-        for (int i = 0; i < n; i++) std::cout << "─";
-        std::cout << RST << "\n";
+        for (int i = 0; i < BOX_W; i++) std::cout << "─";
+        std::cout << "╮" << RST << "\n";
     }
 
-    void borderMid(int n = 52) {
+    void borderMid() {
         std::cout << DWHT << "├";
-        for (int i = 0; i < n; i++) std::cout << "─";
-        std::cout << RST << "\n";
+        for (int i = 0; i < BOX_W; i++) std::cout << "─";
+        std::cout << "┤" << RST << "\n";
     }
 
-    void borderBot(int n = 52) {
+    void borderBot() {
         std::cout << DWHT << "╰";
-        for (int i = 0; i < n; i++) std::cout << "─";
-        std::cout << RST << "\n";
+        for (int i = 0; i < BOX_W; i++) std::cout << "─";
+        std::cout << "╯" << RST << "\n";
     }
 
+    // 콘텐츠를 BOX_W 너비에 맞춰 패딩하고 우측 │ 추가
     void bar(const std::string& content = "") {
-        std::cout << DWHT << "│" << RST;
-        if (!content.empty()) std::cout << "  " << content;
-        std::cout << "\n";
+        int cw  = ansiDw(content);
+        int pad = std::max(0, BOX_W - 2 - cw); // 2 = 앞 공백
+        std::cout << DWHT << "│" << RST
+                  << "  " << content << std::string(pad, ' ')
+                  << DWHT << "│" << RST << "\n";
     }
 
     void sectionHeader(const std::string& title) {
@@ -124,23 +148,25 @@ void ConsoleView::showMainMenu(int sampleCount, int totalStock,
     bar(std::string(DWHT) + dtbuf + RST);
     borderMid();
 
-    // 현황 한 줄
-    std::cout << DWHT << "│" << RST << "  "
-              << BWHT << "시료 "    << RST << sampleCount << "종"
-              << DWHT << "  ·  "    << RST
-              << BWHT << "총재고 "  << RST << totalStock  << "ea"
-              << DWHT << "  ·  "    << RST
-              << BWHT << "주문 "    << RST << orderCount  << "건"
-              << DWHT << "  ·  "    << RST
-              << (producingCount > 0 ? CYN : DWHT)
-              << "생산중 " << producingCount << "건" << RST << "\n";
+    // 현황 한 줄 — bar()로 전달해 우측 │ 정렬
+    {
+        std::string s;
+        s += std::string(BWHT) + "시료 "   + RST + std::to_string(sampleCount) + "종";
+        s += std::string(DWHT) + "  ·  "   + RST;
+        s += std::string(BWHT) + "총재고 " + RST + std::to_string(totalStock)  + "ea";
+        s += std::string(DWHT) + "  ·  "   + RST;
+        s += std::string(BWHT) + "주문 "   + RST + std::to_string(orderCount)  + "건";
+        s += std::string(DWHT) + "  ·  "   + RST;
+        s += (producingCount > 0 ? std::string(CYN) : std::string(DWHT));
+        s += "생산중 " + std::to_string(producingCount) + "건" + RST;
+        bar(s);
+    }
 
     borderMid();
 
     auto menuItem = [](const char* n, const char* label) {
-        std::cout << DWHT << "│" << RST
-                  << "  " << BWHT << "[" << n << "]" << RST
-                  << "  " << label << "\n";
+        std::string content = std::string(BWHT) + "[" + n + "]" + RST + "  " + label;
+        bar(content);
     };
     menuItem("1", "시료 관리");
     menuItem("2", "주문 접수");
