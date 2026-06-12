@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe\" SampleOrderSystem.sln /p:Configuration=Debug /p:Platform=x64 /verbosity:minimal /nologo && x64\\Debug\\SampleOrderSystemTests.exe"
+          }
+        ]
+      }
+    ]
+  }
+}
