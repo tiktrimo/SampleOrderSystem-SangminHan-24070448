@@ -1,6 +1,7 @@
 #pragma once
 #include "src/model/Order.h"
 #include "src/model/Sample.h"
+#include <ctime>
 #include <queue>
 #include <string>
 #include <vector>
@@ -12,6 +13,7 @@ struct ProductionItem {
     int orderQuantity = 0;
     int actualProduction = 0;
     double totalTimeMin = 0.0;
+    std::time_t startTime = 0; // enqueue 시각 (Unix timestamp)
 };
 
 class ProductionService {

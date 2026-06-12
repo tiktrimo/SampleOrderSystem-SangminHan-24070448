@@ -1,6 +1,10 @@
+#define NOMINMAX
 #include <windows.h>
+#include <conio.h>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
+#include <ctime>
 #include "src/model/Sample.h"
 #include "src/model/Order.h"
 #include "src/controller/SampleController.h"
@@ -192,32 +196,114 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
 static void menuProductionLine(OrderController& oc, SampleController& sc,
                                OrderRepository& or_, SampleRepository& sr,
                                ProductionService& ps) {
-    ConsoleView::showProductionQueue(ps);
-    if (!ps.hasNext()) return;
+    // 입력 버퍼 비우기
+    while (_kbhit()) _getch();
 
-    std::cout << "\n  " << C_BWHT << "[1]" << C_RST << " 생산 완료 처리  "
-              << C_DIM  << "[0]" << C_RST << " 뒤로 " << C_CYN << "›" << C_RST << " ";
-    int ch = 0; std::cin >> ch; std::cin.ignore();
-    if (ch != 1) return;
-
-    auto item   = ps.peek();
-    auto oFound = oc.findById(item.orderId);
-    auto sFound = sc.findById(item.sampleId);
-    if (!oFound || !sFound) {
-        std::cout << "  " << C_RED << "✗ 데이터 오류" << C_RST << "\n";
+    if (!ps.hasNext()) {
+        std::cout << "\n  " << C_DIM << "(생산 중인 항목 없음)" << C_RST << "\n";
+        std::cout << "  " << C_DIM << "[아무 키] 뒤로" << C_RST;
+        _getch();
         return;
     }
-    Order o = *oFound; Sample s = *sFound;
-    ps.complete(o, s);
-    for (auto& ord : oc.orders_) {
-        if (ord.orderId == o.orderId) { ord = o; break; }
+
+    while (true) {
+        std::cout << "\033[2J\033[H" << std::flush;
+
+        if (!ps.hasNext()) {
+            std::cout << "\n  " << C_GRN << "✓ 모든 생산 완료" << C_RST << "\n\n";
+            std::cout << "  " << C_DIM << "[아무 키] 뒤로" << C_RST;
+            _getch();
+            break;
+        }
+
+        auto item    = ps.peek();
+        time_t now   = time(nullptr);
+        double elap  = difftime(now, item.startTime);
+        double total = item.totalTimeMin; // 시뮬레이션: 1min → 1sec
+        double prog  = std::min(1.0, total > 0 ? elap / total : 1.0);
+        int    pct   = static_cast<int>(prog * 100);
+        int    rem   = static_cast<int>(std::max(0.0, total - elap));
+
+        // ── 헤더
+        std::cout << "\n" << C_BCYN << "▸ " << C_BWHT << "생산라인" << C_RST
+                  << C_DIM << "  실시간 모니터링" << C_RST << "\n\n";
+
+        // ── 현재 처리 중 박스
+        std::cout << C_CYN << "⚙ " << C_BWHT << "현재 처리 중" << C_RST << "\n";
+        std::cout << C_DIM; for (int i = 0; i < 54; i++) std::cout << "─"; std::cout << C_RST << "\n";
+        std::cout << "  " << C_DIM << "주문번호  " << C_RST << C_CYN << C_BOLD << item.orderId  << C_RST << "\n";
+        std::cout << "  " << C_DIM << "시료      " << C_RST << item.sampleName
+                  << " " << C_DIM << "(" << item.sampleId << ")" << C_RST << "\n";
+        std::cout << "  " << C_DIM << "주문량    " << C_RST << item.orderQuantity << "ea"
+                  << C_DIM << "  실생산량 " << C_RST << C_GRN << C_BOLD << item.actualProduction << "ea" << C_RST << "\n\n";
+
+        // ── 진행률 바 (30칸)
+        int filled = static_cast<int>(prog * 30);
+        std::string barStr;
+        for (int i = 0; i < 30; i++) barStr += (i < filled ? "█" : "░");
+
+        std::cout << "  " << C_DIM << "진행  " << C_RST
+                  << (pct >= 100 ? C_GRN : C_CYN) << barStr << C_RST
+                  << "  " << C_BWHT << pct << "%" << C_RST;
+        if (pct < 100)
+            std::cout << C_DIM << "  남은시간 " << rem << "초" << C_RST;
+        else
+            std::cout << C_GRN << "  완료 처리 중..." << C_RST;
+        std::cout << "\n";
+        std::cout << C_DIM; for (int i = 0; i < 54; i++) std::cout << "─"; std::cout << C_RST << "\n";
+
+        // ── 대기 큐
+        auto items = ps.getQueueItems();
+        if ((int)items.size() > 1) {
+            std::cout << "\n" << C_BWHT << "대기 중인 주문" << C_RST
+                      << C_DIM << "  (FIFO)  " << (items.size() - 1) << "건" << C_RST << "\n";
+            std::cout << C_DIM; for (int i = 0; i < 54; i++) std::cout << "─"; std::cout << C_RST << "\n";
+            std::cout << C_DIM << std::left
+                      << std::setw(5)  << "순서"
+                      << std::setw(24) << "주문번호"
+                      << std::setw(10) << "주문량"
+                      << "실생산량" << C_RST << "\n";
+            for (int i = 1; i < (int)items.size(); i++) {
+                const auto& it = items[i];
+                std::cout << std::left
+                          << std::setw(5)  << i
+                          << std::setw(24) << it.orderId
+                          << std::setw(10) << (std::to_string(it.orderQuantity) + "ea")
+                          << it.actualProduction << "ea\n";
+            }
+        }
+
+        std::cout << "\n  " << C_DIM << "[0] 뒤로" << C_RST << "\n";
+        std::cout << std::flush;
+
+        // ── 자동 완료
+        if (prog >= 1.0) {
+            auto oFound = oc.findById(item.orderId);
+            auto sFound = sc.findById(item.sampleId);
+            if (oFound && sFound) {
+                Order o = *oFound; Sample s = *sFound;
+                auto done = ps.complete(o, s);
+                for (auto& ord : oc.orders_)
+                    if (ord.orderId == o.orderId) { ord = o; break; }
+                sc.updateStock(s.id, done.actualProduction);
+                or_.update(o); sr.update(s);
+                std::cout << "\n  " << C_GRN << "✓ 생산 완료  "
+                          << C_BOLD << item.orderId << C_RST << "  " << C_GRN << "→ CONFIRMED" << C_RST << "\n";
+                std::cout << std::flush;
+                Sleep(1500);
+            }
+            continue;
+        }
+
+        // ── 200ms 간격으로 키 체크, 총 1초 대기
+        for (int i = 0; i < 5; i++) {
+            if (_kbhit()) {
+                int ch = _getch();
+                if (ch == '0') return;
+            }
+            Sleep(200);
+        }
     }
-    sc.updateStock(s.id, item.actualProduction);
-    or_.update(o);
-    sr.update(s);
-    std::cout << "  " << C_GRN << "✓ 생산 완료" << C_RST << "  "
-              << C_BOLD << o.orderId << C_RST << "  "
-              << C_GRN << "→ CONFIRMED" << C_RST << "\n";
 }
 
 static void menuRelease(OrderController& oc, OrderRepository& or_) {

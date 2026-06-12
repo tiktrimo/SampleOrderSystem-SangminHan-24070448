@@ -20,6 +20,7 @@ void ProductionService::enqueue(const Order& order, const Sample& sample, int sh
     item.orderQuantity = order.quantity;
     item.actualProduction = actual;
     item.totalTimeMin = totalTime;
+    item.startTime = time(nullptr);
     queue_.push(item);
 }
 
