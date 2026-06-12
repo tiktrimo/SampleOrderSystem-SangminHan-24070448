@@ -45,7 +45,7 @@ bool OrderController::updateOrder(const Order& order) {
 int OrderController::getOrderCount() const {
     int count = 0;
     for (const auto& o : orders_)
-        if (o.status != OrderStatus::REJECTED) count++;
+        if (o.status != OrderStatus::REJECTED && o.status != OrderStatus::RELEASE) count++;
     return count;
 }
 
