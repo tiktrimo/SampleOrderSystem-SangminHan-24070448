@@ -73,11 +73,13 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\model\Order.cpp" />
     <ClCompile Include="src\controller\SampleController.cpp" />
+    <ClCompile Include="src\repository\SampleRepository.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\model\Sample.h" />
     <ClInclude Include="src\model\Order.h" />
     <ClInclude Include="src\repository\IRepository.h" />
+    <ClInclude Include="src\repository\SampleRepository.h" />
     <ClInclude Include="src\controller\SampleController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
