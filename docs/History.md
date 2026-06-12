@@ -14,3 +14,6 @@
 | 6 | 4개 POC 순서대로 구현 요청 | POC별 기능 단위 커밋(총 22회)으로 전체 구현 완료 — MVC 스켈레톤 / 파일 CRUD / 모니터링 / 더미 데이터 생성기 |
 | 7 | 빌드 및 테스트 요청 | MSBuild Debug\|x64 — 4개 모두 에러 없이 빌드·실행 성공. 상태 전환·영속성·모니터링·데이터 생성 동작 검증 |
 | 8 | 각 프롬프트와 결과를 History.md로 저장 요청 | 본 파일 생성 |
+| 9 | 메인 프로그램 구현 — agent harness 방식 선택 및 implement→build→test 루프 요청 | 4가지 하네스 통합: Hooks(PostToolUse 자동빌드+테스트), TDD red-green 커밋, PRD 6개 체크포인트, CLAUDE.md 인수조건 |
+| 10 | SampleOrderSystem TDD 구현 (CP1~CP6 Red-Green 루프) | 20개 커밋(test→feat→chore 패턴) — CP1 시료관리 / CP2 주문접수 / CP3 승인거절 / CP4 생산라인 / CP5 모니터링 / CP6 출고처리. 44 passed, 0 failed. 에러/경고 없이 빌드 완료 |
+| 11 | vector 크래시 디버그 (사용자 스크린샷 제보) | test_monitor.cpp 에서 stub 반환 빈 벡터의 `[0]` 직접 접근 원인 파악. size 가드 추가로 ASSERT 예외로 전환하여 크래시 해결 |
