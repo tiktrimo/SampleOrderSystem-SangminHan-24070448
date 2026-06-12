@@ -187,7 +187,7 @@ void ConsoleView::showSamples(const std::vector<Sample>& samples) {
               << rpad("ID", 10)
               << rpad("시료명", 22)
               << rpad("생산시간", 12)
-              << rpad("수율", 8)
+              << rpad("수율", 12)
               << "재고" << RST << "\n";
     hline(58);
     if (samples.empty()) {
@@ -199,7 +199,7 @@ void ConsoleView::showSamples(const std::vector<Sample>& samples) {
         std::cout << rpad(s.id,   10)
                   << rpad(s.name, 22)
                   << rpad(std::to_string(s.avgProductionTimeMin) + "min", 12)
-                  << rpad(std::to_string(s.yield), 8)
+                  << rpad(std::to_string(s.yield), 12)
                   << stk << BOLD << s.stock << "ea" << RST << "\n";
     }
 }
