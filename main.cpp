@@ -322,21 +322,12 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
         std::cout << "\n  " << DWHT << "[0] 뒤로" << RST << "\n";
         std::cout << std::flush;
 
-        // ── 자동 완료
         if (prog >= 1.0) {
-            auto oFound = oc.findById(item.orderId);
-            auto sFound = sc.findById(item.sampleId);
-            if (oFound && sFound) {
-                Order o = *oFound; Sample s = *sFound;
-                auto done = ps.complete(o, s);
-                oc.updateOrder(o);
-                sc.updateStock(s.id, done.actualProduction);
-                or_.update(o); sr.update(s);
-                std::cout << "\n  " << GRN << "✓ 생산 완료  "
-                          << BOLD << item.orderId << RST << "  " << GRN << "→ CONFIRMED" << RST << "\n";
-                std::cout << std::flush;
-                Sleep(1500);
-            }
+            std::cout << "\n  " << GRN << "✓ 생산 완료  "
+                      << BOLD << item.orderId << RST << "  " << GRN << "→ CONFIRMED" << RST << "\n";
+            std::cout << std::flush;
+            autoCompleteProduction(oc, sc, or_, sr, ps);
+            Sleep(1500);
             continue;
         }
 
