@@ -79,6 +79,7 @@
     <ClCompile Include="src\controller\SampleController.cpp" />
     <ClCompile Include="src\repository\SampleRepository.cpp" />
     <ClCompile Include="src\controller\OrderController.cpp" />
+    <ClCompile Include="src\repository\OrderRepository.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests\TestRunner.h" />
