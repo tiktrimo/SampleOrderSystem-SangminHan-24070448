@@ -49,6 +49,18 @@ int OrderController::getOrderCount() const {
     return count;
 }
 
+void OrderController::syncSequence() {
+    for (const auto& o : orders_) {
+        auto pos = o.orderId.rfind('-');
+        if (pos != std::string::npos) {
+            try {
+                int seq = std::stoi(o.orderId.substr(pos + 1));
+                if (seq > orderSeq_) orderSeq_ = seq;
+            } catch (...) {}
+        }
+    }
+}
+
 std::string OrderController::generateOrderId() {
     std::time_t t = std::time(nullptr);
     std::tm tm{};

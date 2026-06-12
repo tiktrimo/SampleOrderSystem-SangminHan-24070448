@@ -14,6 +14,7 @@ public:
     std::optional<Order> findById(const std::string& orderId) const;
     bool updateOrder(const Order& order);
     int getOrderCount() const;
+    void syncSequence(); // 파일에서 로드 후 orderSeq_ 동기화 (중복 ID 방지)
 
     std::vector<Order> orders_;
 

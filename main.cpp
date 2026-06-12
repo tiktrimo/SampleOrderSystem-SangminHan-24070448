@@ -255,8 +255,12 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
         std::cout << "  " << C_DIM << "주문번호  " << C_RST << C_CYN << C_BOLD << item.orderId  << C_RST << "\n";
         std::cout << "  " << C_DIM << "시료      " << C_RST << item.sampleName
                   << " " << C_DIM << "(" << item.sampleId << ")" << C_RST << "\n";
+        int curProd = static_cast<int>(prog * item.actualProduction);
         std::cout << "  " << C_DIM << "주문량    " << C_RST << item.orderQuantity << "ea"
-                  << C_DIM << "  실생산량 " << C_RST << C_GRN << C_BOLD << item.actualProduction << "ea" << C_RST << "\n\n";
+                  << C_DIM << "  목표생산량 " << C_RST << C_GRN << C_BOLD << item.actualProduction << "ea" << C_RST << "\n";
+        std::cout << "  " << C_DIM << "현재생산량" << C_RST
+                  << "  " << C_CYN << C_BOLD << curProd << "ea" << C_RST
+                  << C_DIM << " / " << item.actualProduction << "ea" << C_RST << "\n\n";
 
         // ── 진행률 바 (30칸)
         int filled = static_cast<int>(prog * 30);
@@ -398,6 +402,7 @@ int main() {
 
     OrderController oc;
     for (const auto& o : or_.findAll()) oc.orders_.push_back(o);
+    oc.syncSequence(); // 재시작 후 중복 주문번호 방지
 
     ProductionService ps;
     for (const auto& o : oc.getByStatus(OrderStatus::PRODUCING)) {
@@ -408,7 +413,7 @@ int main() {
     int choice = -1;
     while (choice != 0) {
         auto snap     = MonitorService::buildSnapshot(oc.getAll(), sc.getAll());
-        int producing = static_cast<int>(oc.getByStatus(OrderStatus::PRODUCING).size());
+        int producing = ps.queueSize(); // 실제 생산 큐 기준 (order status 불일치 방지)
         ConsoleView::showMainMenu(sc.getSampleCount(), sc.getTotalStock(),
                                   oc.getOrderCount(), producing);
         std::cin >> choice; std::cin.ignore();
