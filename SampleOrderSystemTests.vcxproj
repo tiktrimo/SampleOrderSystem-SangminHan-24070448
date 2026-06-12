@@ -73,12 +73,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="tests\test_main.cpp" />
+    <ClCompile Include="tests\test_sample.cpp" />
     <ClCompile Include="src\model\Order.cpp" />
+    <ClCompile Include="src\controller\SampleController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests\TestRunner.h" />
     <ClInclude Include="src\model\Sample.h" />
     <ClInclude Include="src\model\Order.h" />
+    <ClInclude Include="src\repository\IRepository.h" />
+    <ClInclude Include="src\controller\SampleController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
