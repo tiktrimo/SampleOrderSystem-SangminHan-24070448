@@ -15,11 +15,11 @@
 #include &lt;algorithm&gt;
 
 OrderRepository::OrderRepository(const std::string&amp; filePath)
-<span style = "background-color:#fdd">    : filePath_(filePath) {
+<span style = "background-color:#dfd">    : filePath_(filePath) {
     loadAll();
 }</span>
 
-<span style = "background-color:#fdd">void OrderRepository::loadAll() {
+<span style = "background-color:#dfd">void OrderRepository::loadAll() {
     cache_.clear();
     std::ifstream ifs(filePath_);
     if (!ifs.is_open()) return;
@@ -29,12 +29,12 @@ OrderRepository::OrderRepository(const std::string&amp; filePath)
     }
 }</span>
 
-<span style = "background-color:#fdd">void OrderRepository::saveAll() const {
+<span style = "background-color:#dfd">void OrderRepository::saveAll() const {
     std::ofstream ofs(filePath_);
     for (const auto&amp; o : cache_) ofs &lt;&lt; toLine(o) &lt;&lt; "\n";
 }</span>
 
-<span style = "background-color:#fdd">Order OrderRepository::parseLine(const std::string&amp; line) {
+<span style = "background-color:#dfd">Order OrderRepository::parseLine(const std::string&amp; line) {
     std::istringstream ss(line);
     Order o;
     std::string tok;
@@ -43,32 +43,36 @@ OrderRepository::OrderRepository(const std::string&amp; filePath)
     std::getline(ss, o.customerName, '|');
     std::getline(ss, tok, '|'); o.quantity = std::stoi(tok);
     std::getline(ss, tok, '|'); o.status = stringToOrderStatus(tok);
-    return o;
+    if (std::getline(ss, tok, '|')) {
+        try { o.shortage = std::stoi(tok); } catch (...) {}</span>
+    }
+<span style = "background-color:#dfd">    return o;
 }</span>
 
-<span style = "background-color:#fdd">std::string OrderRepository::toLine(const Order&amp; o) {
+<span style = "background-color:#dfd">std::string OrderRepository::toLine(const Order&amp; o) {
     return o.orderId + "|" + o.sampleId + "|" + o.customerName + "|" +</span>
-        std::to_string(o.quantity) + "|" + orderStatusToString(o.status);
-<span style = "background-color:#fdd">}</span>
+        std::to_string(o.quantity) + "|" + orderStatusToString(o.status) + "|" +
+        std::to_string(o.shortage);
+<span style = "background-color:#dfd">}</span>
 
-<span style = "background-color:#fdd">void OrderRepository::save(const Order&amp; item) {
+<span style = "background-color:#dfd">void OrderRepository::save(const Order&amp; item) {
     if (exists(item.orderId)) return;
     cache_.push_back(item);
     saveAll();
 }</span>
 
-<span style = "background-color:#fdd">bool OrderRepository::update(const Order&amp; item) {
+<span style = "background-color:#dfd">bool OrderRepository::update(const Order&amp; item) {
     for (auto&amp; o : cache_) {
         if (o.orderId == item.orderId) {
             o = item;
             saveAll();
             return true;</span>
         }
-<span style = "background-color:#fdd">    }
+<span style = "background-color:#dfd">    }
     return false;
 }</span>
 
-<span style = "background-color:#fdd">bool OrderRepository::remove(const std::string&amp; id) {
+<span style = "background-color:#dfd">bool OrderRepository::remove(const std::string&amp; id) {
     auto it = std::remove_if(cache_.begin(), cache_.end(),
         [&amp;id](const Order&amp; o) { return o.orderId == id; });
     if (it == cache_.end()) return false;
@@ -77,25 +81,25 @@ OrderRepository::OrderRepository(const std::string&amp; filePath)
     return true;
 }</span>
 
-<span style = "background-color:#fdd">std::optional&lt;Order&gt; OrderRepository::findById(const std::string&amp; id) const {
+<span style = "background-color:#dfd">std::optional&lt;Order&gt; OrderRepository::findById(const std::string&amp; id) const {
     for (const auto&amp; o : cache_) {
         if (o.orderId == id) return o;
-    }
-    return std::nullopt;
-}</span>
+    }</span>
+<span style = "background-color:#fdd">    return std::nullopt;</span>
+<span style = "background-color:#dfd">}</span>
 
-<span style = "background-color:#fdd">std::vector&lt;Order&gt; OrderRepository::findAll() const {
+<span style = "background-color:#dfd">std::vector&lt;Order&gt; OrderRepository::findAll() const {
     return cache_;
 }</span>
 
-<span style = "background-color:#fdd">bool OrderRepository::exists(const std::string&amp; id) const {
+<span style = "background-color:#dfd">bool OrderRepository::exists(const std::string&amp; id) const {
     for (const auto&amp; o : cache_) {
         if (o.orderId == id) return true;
     }
     return false;
 }</span>
 
-<span style = "background-color:#fdd">std::vector&lt;Order&gt; OrderRepository::findByStatus(OrderStatus status) const {
+<span style = "background-color:#dfd">std::vector&lt;Order&gt; OrderRepository::findByStatus(OrderStatus status) const {
     std::vector&lt;Order&gt; result;
     for (const auto&amp; o : cache_) {
         if (o.status == status) result.push_back(o);

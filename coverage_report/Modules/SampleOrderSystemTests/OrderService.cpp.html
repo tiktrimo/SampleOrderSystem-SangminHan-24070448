@@ -15,10 +15,8 @@
     if (order.status != OrderStatus::RESERVED) return false;</span>
 
 <span style = "background-color:#dfd">    if (sample.stock &gt;= order.quantity) {
-        sample.stock -= order.quantity;
         order.status = OrderStatus::CONFIRMED;
     } else {
-        sample.stock = 0;
         order.status = OrderStatus::PRODUCING;</span>
     }
 <span style = "background-color:#dfd">    return true;

@@ -15,11 +15,11 @@
 #include &lt;algorithm&gt;
 
 SampleRepository::SampleRepository(const std::string&amp; filePath)
-<span style = "background-color:#fdd">    : filePath_(filePath) {
+<span style = "background-color:#dfd">    : filePath_(filePath) {
     loadAll();
 }</span>
 
-<span style = "background-color:#fdd">void SampleRepository::loadAll() {
+<span style = "background-color:#dfd">void SampleRepository::loadAll() {
     cache_.clear();
     std::ifstream ifs(filePath_);
     if (!ifs.is_open()) return;
@@ -29,12 +29,12 @@ SampleRepository::SampleRepository(const std::string&amp; filePath)
     }
 }</span>
 
-<span style = "background-color:#fdd">void SampleRepository::saveAll() const {
+<span style = "background-color:#dfd">void SampleRepository::saveAll() const {
     std::ofstream ofs(filePath_);
     for (const auto&amp; s : cache_) ofs &lt;&lt; toLine(s) &lt;&lt; "\n";
 }</span>
 
-<span style = "background-color:#fdd">Sample SampleRepository::parseLine(const std::string&amp; line) {
+<span style = "background-color:#dfd">Sample SampleRepository::parseLine(const std::string&amp; line) {
     std::istringstream ss(line);
     Sample s;
     std::string tok;
@@ -46,31 +46,31 @@ SampleRepository::SampleRepository(const std::string&amp; filePath)
     return s;
 }</span>
 
-<span style = "background-color:#fdd">std::string SampleRepository::toLine(const Sample&amp; s) {
+<span style = "background-color:#dfd">std::string SampleRepository::toLine(const Sample&amp; s) {
     return s.id + "|" + s.name + "|" +</span>
         std::to_string(s.avgProductionTimeMin) + "|" +
         std::to_string(s.yield) + "|" +
         std::to_string(s.stock);
-<span style = "background-color:#fdd">}</span>
+<span style = "background-color:#dfd">}</span>
 
-<span style = "background-color:#fdd">void SampleRepository::save(const Sample&amp; item) {
+<span style = "background-color:#dfd">void SampleRepository::save(const Sample&amp; item) {
     if (exists(item.id)) return;
     cache_.push_back(item);
     saveAll();
 }</span>
 
-<span style = "background-color:#fdd">bool SampleRepository::update(const Sample&amp; item) {
+<span style = "background-color:#dfd">bool SampleRepository::update(const Sample&amp; item) {
     for (auto&amp; s : cache_) {
         if (s.id == item.id) {
             s = item;
             saveAll();
             return true;</span>
         }
-<span style = "background-color:#fdd">    }
+<span style = "background-color:#dfd">    }
     return false;
 }</span>
 
-<span style = "background-color:#fdd">bool SampleRepository::remove(const std::string&amp; id) {
+<span style = "background-color:#dfd">bool SampleRepository::remove(const std::string&amp; id) {
     auto it = std::remove_if(cache_.begin(), cache_.end(),
         [&amp;id](const Sample&amp; s) { return s.id == id; });
     if (it == cache_.end()) return false;
@@ -79,18 +79,18 @@ SampleRepository::SampleRepository(const std::string&amp; filePath)
     return true;
 }</span>
 
-<span style = "background-color:#fdd">std::optional&lt;Sample&gt; SampleRepository::findById(const std::string&amp; id) const {
+<span style = "background-color:#dfd">std::optional&lt;Sample&gt; SampleRepository::findById(const std::string&amp; id) const {
     for (const auto&amp; s : cache_) {
-        if (s.id == id) return s;
-    }
-    return std::nullopt;
-}</span>
+        if (s.id == id) return s;</span>
+<span style = "background-color:#fdd">    }
+    return std::nullopt;</span>
+<span style = "background-color:#dfd">}</span>
 
-<span style = "background-color:#fdd">std::vector&lt;Sample&gt; SampleRepository::findAll() const {
+<span style = "background-color:#dfd">std::vector&lt;Sample&gt; SampleRepository::findAll() const {
     return cache_;
 }</span>
 
-<span style = "background-color:#fdd">bool SampleRepository::exists(const std::string&amp; id) const {
+<span style = "background-color:#dfd">bool SampleRepository::exists(const std::string&amp; id) const {
     for (const auto&amp; s : cache_) {
         if (s.id == id) return true;
     }

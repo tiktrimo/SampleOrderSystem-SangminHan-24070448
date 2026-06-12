@@ -10,9 +10,15 @@
         <h4></h4>
         <pre class="prettyprint lang-cpp linenums">
 #include "OrderController.h"
+#include &lt;algorithm&gt;
+#include &lt;iterator&gt;
 #include &lt;ctime&gt;
 #include &lt;sstream&gt;
 #include &lt;iomanip&gt;
+
+<span style = "background-color:#dfd">void OrderController::loadOrders(const std::vector&lt;Order&gt;&amp; orders) {
+    orders_ = orders;
+}</span>
 
 std::string OrderController::placeOrder(const std::string&amp; sampleId,
                                         const std::string&amp; customerName,
@@ -27,34 +33,48 @@ std::string OrderController::placeOrder(const std::string&amp; sampleId,
     return o.orderId;
 }</span>
 
-<span style = "background-color:#fdd">std::vector&lt;Order&gt; OrderController::getAll() const {
+<span style = "background-color:#dfd">std::vector&lt;Order&gt; OrderController::getAll() const {
     return orders_;
 }</span>
 
 <span style = "background-color:#dfd">std::vector&lt;Order&gt; OrderController::getByStatus(OrderStatus status) const {
     std::vector&lt;Order&gt; result;
-    for (const auto&amp; o : orders_) {
-        if (o.status == status) result.push_back(o);
-    }
+    std::copy_if(orders_.begin(), orders_.end(), std::back_inserter(result),
+        [&amp;](const Order&amp; o) { return o.status == status; });
     return result;
 }</span>
 
 <span style = "background-color:#dfd">std::optional&lt;Order&gt; OrderController::findById(const std::string&amp; orderId) const {
-    for (const auto&amp; o : orders_) {
-        if (o.orderId == orderId) return o;</span>
-<span style = "background-color:#fdd">    }
-    return std::nullopt;</span>
-<span style = "background-color:#dfd">}</span>
+    auto it = std::find_if(orders_.begin(), orders_.end(),
+        [&amp;](const Order&amp; o) { return o.orderId == orderId; });
+    return it != orders_.end() ? std::optional&lt;Order&gt;(*it) : std::nullopt;
+}</span>
 
-<span style = "background-color:#fdd">bool OrderController::updateOrder(const Order&amp; order) {
-    for (auto&amp; o : orders_) {
-        if (o.orderId == order.orderId) { o = order; return true; }
-    }
-    return false;
+<span style = "background-color:#dfd">bool OrderController::updateOrder(const Order&amp; order) {
+    auto it = std::find_if(orders_.begin(), orders_.end(),
+        [&amp;](const Order&amp; o) { return o.orderId == order.orderId; });
+    if (it == orders_.end()) return false;
+    *it = order;
+    return true;
 }</span>
 
 <span style = "background-color:#dfd">int OrderController::getOrderCount() const {
-    return static_cast&lt;int&gt;(orders_.size());
+    return static_cast&lt;int&gt;(std::count_if(orders_.begin(), orders_.end(),
+        [](const Order&amp; o) {
+            return o.status != OrderStatus::REJECTED &amp;&amp; o.status != OrderStatus::RELEASE;
+        }));
+}</span>
+
+<span style = "background-color:#dfd">void OrderController::syncSequence() {
+    for (const auto&amp; o : orders_) {
+        auto pos = o.orderId.rfind('-');
+        if (pos != std::string::npos) {</span>
+            try {
+<span style = "background-color:#dfd">                int seq = std::stoi(o.orderId.substr(pos + 1));
+                if (seq &gt; orderSeq_) orderSeq_ = seq;</span>
+<span style = "background-color:#fdd">            } catch (...) {}</span>
+        }
+<span style = "background-color:#dfd">    }
 }</span>
 
 <span style = "background-color:#dfd">std::string OrderController::generateOrderId() {

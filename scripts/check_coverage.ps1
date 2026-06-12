@@ -5,23 +5,20 @@
 $root        = $PSScriptRoot | Split-Path -Parent
 $tool        = "C:\Program Files\OpenCppCoverage\OpenCppCoverage.exe"
 $testExe     = Join-Path $root "x64\Debug\SampleOrderSystemTests.exe"
-$sourceDir   = Join-Path $root "src"
+$sourceDir   = (Resolve-Path (Join-Path $root "src")).Path   # 절대경로 필수 — 상대경로는 CRT 파일까지 매칭됨
 $xmlOutput   = Join-Path $root "coverage.xml"
 $reportDir   = Join-Path $root "coverage_report"
-$logFile     = Join-Path $root "LastCoverageResults.log"
 $baselineFile = Join-Path $root ".coverage_baseline"
 
 # OpenCppCoverage 없으면 조용히 종료
 if (-not (Test-Path $tool))    { exit 0 }
 if (-not (Test-Path $testExe)) { exit 0 }
 
-# 커버리지 측정
-& $tool `
-    --sources   $sourceDir `
-    --export_type "cobertura:$xmlOutput" `
-    --export_type "html:$reportDir" `
-    --log_level normal `
-    -- $testExe > $logFile 2>&1
+# 커버리지 측정 (cobertura XML)
+& $tool --sources $sourceDir --export_type "cobertura:$xmlOutput" -- $testExe 2>$null | Out-Null
+
+# HTML 리포트 별도 생성 (stdout 리다이렉트 없이 실행해야 정상 동작)
+& $tool --sources $sourceDir --export_type "html:$reportDir" -- $testExe 2>$null | Out-Null
 
 if (-not (Test-Path $xmlOutput)) {
     Write-Host "coverage.xml 생성 실패 — 커버리지 확인 건너뜀."

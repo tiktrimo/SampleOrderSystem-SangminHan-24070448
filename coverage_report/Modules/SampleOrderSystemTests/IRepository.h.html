@@ -17,7 +17,7 @@
 template &lt;typename T&gt;
 class IRepository {
 public:
-<span style = "background-color:#fdd">    virtual ~IRepository() = default;</span>
+<span style = "background-color:#dfd">    virtual ~IRepository() = default;</span>
     virtual void save(const T&amp; item) = 0;
     virtual bool update(const T&amp; item) = 0;
     virtual bool remove(const std::string&amp; id) = 0;
