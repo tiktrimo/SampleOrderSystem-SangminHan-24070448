@@ -76,6 +76,7 @@
     <ClCompile Include="src\repository\SampleRepository.cpp" />
     <ClCompile Include="src\controller\OrderController.cpp" />
     <ClCompile Include="src\repository\OrderRepository.cpp" />
+    <ClCompile Include="src\service\OrderService.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\model\Sample.h" />
