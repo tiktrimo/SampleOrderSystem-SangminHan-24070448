@@ -62,6 +62,15 @@ static void autoCompleteProduction(OrderController& oc, SampleController& sc,
     }
 }
 
+// 현재 생산 진행 중인 항목의 예상 생산량 반환 (표시 전용, DB 미기록)
+static int calcInProgressStock(ProductionService& ps) {
+    if (!ps.hasNext()) return 0;
+    auto item  = ps.peek();
+    double elap = difftime(time(nullptr), item.startTime);
+    double prog = std::min(1.0, item.totalTimeMin > 0 ? elap / item.totalTimeMin : 1.0);
+    return static_cast<int>(prog * item.actualProduction);
+}
+
 // ── 메뉴 함수 ─────────────────────────────────────────────────────────────────
 
 static void menuSampleManage(SampleController& sc, SampleRepository& sr) {
@@ -439,14 +448,8 @@ int main() {
     int choice = -1;
     while (choice != 0) {
         autoCompleteProduction(oc, sc, or_, sr, ps);
-        int producing = ps.queueSize();
-        int displayStock = sc.getTotalStock();
-        if (ps.hasNext()) {
-            auto item = ps.peek();
-            double elap = difftime(time(nullptr), item.startTime);
-            double prog = std::min(1.0, item.totalTimeMin > 0 ? elap / item.totalTimeMin : 1.0);
-            displayStock += static_cast<int>(prog * item.actualProduction);
-        }
+        int producing    = ps.queueSize();
+        int displayStock = sc.getTotalStock() + calcInProgressStock(ps);
         ConsoleView::showMainMenu(sc.getSampleCount(), displayStock,
                                   oc.getOrderCount(), producing);
         std::cin >> choice; std::cin.ignore();
@@ -456,13 +459,10 @@ int main() {
         case 3: menuApproveReject(oc, sc, or_, sr, ps); break;
         case 4: {
             autoCompleteProduction(oc, sc, or_, sr, ps);
-            auto snap = MonitorService::buildSnapshot(oc.getAll(), sc.getAll());
-            // 생산 진행 중인 항목의 현재 생산량을 재고에 반영 (표시 전용)
-            if (ps.hasNext()) {
+            auto snap    = MonitorService::buildSnapshot(oc.getAll(), sc.getAll());
+            int  curProd = calcInProgressStock(ps);
+            if (curProd > 0) {
                 auto item = ps.peek();
-                double elap = difftime(time(nullptr), item.startTime);
-                double prog = std::min(1.0, item.totalTimeMin > 0 ? elap / item.totalTimeMin : 1.0);
-                int curProd = static_cast<int>(prog * item.actualProduction);
                 for (auto& info : snap.stockInfos)
                     if (info.sample.id == item.sampleId) { info.sample.stock += curProd; break; }
             }
