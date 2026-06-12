@@ -3,6 +3,7 @@
 #include "src/model/Sample.h"
 #include <queue>
 #include <string>
+#include <vector>
 
 struct ProductionItem {
     std::string orderId;
@@ -27,6 +28,7 @@ public:
     ProductionItem complete(Order& order, Sample& sample);
 
     int queueSize() const;
+    std::vector<ProductionItem> getQueueItems() const;
 
 private:
     std::queue<ProductionItem> queue_;

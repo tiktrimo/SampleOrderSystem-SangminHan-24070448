@@ -43,3 +43,13 @@ ProductionItem ProductionService::complete(Order& order, Sample& sample) {
 int ProductionService::queueSize() const {
     return static_cast<int>(queue_.size());
 }
+
+std::vector<ProductionItem> ProductionService::getQueueItems() const {
+    std::queue<ProductionItem> copy = queue_;
+    std::vector<ProductionItem> items;
+    while (!copy.empty()) {
+        items.push_back(copy.front());
+        copy.pop();
+    }
+    return items;
+}

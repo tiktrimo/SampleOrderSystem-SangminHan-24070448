@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <iostream>
+#include <iomanip>
 #include "src/model/Sample.h"
 #include "src/model/Order.h"
 #include "src/controller/SampleController.h"
@@ -36,9 +37,19 @@ static void menuPlaceOrder(OrderController& oc, SampleController& sc,
                            OrderRepository& or_) {
     std::cout << "\n[ 주문 접수 ]\n";
     ConsoleView::showSamples(sc.getAll());
-    auto sid = ConsoleView::promptString("시료 ID");
+    auto sid  = ConsoleView::promptString("시료 ID");
     auto cust = ConsoleView::promptString("고객명");
-    int qty = ConsoleView::promptInt("수량");
+    int  qty  = ConsoleView::promptInt("수량");
+
+    auto sFound = sc.findById(sid);
+    std::cout << "\n[입력 확인]\n";
+    std::cout << "  시료: " << (sFound ? sFound->name : "?") << " (" << sid << ")\n";
+    std::cout << "  고객: " << cust << "\n";
+    std::cout << "  수량: " << qty << "ea\n";
+    std::cout << "[Y] 예약 접수  [N] 취소 > ";
+    char yn = 0; std::cin >> yn; std::cin.ignore();
+    if (yn != 'Y' && yn != 'y') { std::cout << "취소됨\n"; return; }
+
     auto id = oc.placeOrder(sid, cust, qty);
     auto found = oc.findById(id);
     if (found) or_.save(*found);
@@ -50,34 +61,71 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
                               ProductionService& ps) {
     auto reserved = oc.getByStatus(OrderStatus::RESERVED);
     if (reserved.empty()) { std::cout << "\n대기 주문 없음\n"; return; }
-    ConsoleView::showOrders(reserved);
-    auto oid = ConsoleView::promptString("주문번호");
-    std::cout << "(1)승인  (2)거절 > ";
-    int ch = 0; std::cin >> ch; std::cin.ignore();
+
+    std::cout << "\n[ 승인 대기 중인 예약 목록 (RESERVED) ]\n";
+    std::cout << std::left << std::setw(6)  << "번호"
+              << std::setw(22) << "주문번호"
+              << std::setw(12) << "시료ID"
+              << std::setw(18) << "고객명"
+              << "수량\n";
+    std::cout << std::string(70, '-') << "\n";
+    for (int i = 0; i < (int)reserved.size(); i++) {
+        const auto& o = reserved[i];
+        std::cout << std::left << std::setw(6)  << ("[" + std::to_string(i + 1) + "]")
+                  << std::setw(22) << o.orderId
+                  << std::setw(12) << o.sampleId
+                  << std::setw(18) << o.customerName
+                  << o.quantity << "ea\n";
+    }
+
+    int idx = ConsoleView::promptInt("승인/거절할 번호");
+    if (idx < 1 || idx > (int)reserved.size()) { std::cout << "잘못된 번호\n"; return; }
+    std::string oid = reserved[idx - 1].orderId;
 
     auto oFound = oc.findById(oid);
     if (!oFound) { std::cout << "주문 없음\n"; return; }
     Order o = *oFound;
 
-    if (ch == 1) {
-        auto sFound = sc.findById(o.sampleId);
-        if (!sFound) { std::cout << "시료 없음\n"; return; }
-        Sample s = *sFound;
-        bool producing = (s.stock < o.quantity);
-        OrderService::approve(o, s);
-        if (producing) ps.enqueue(o, s);
-        sc.updateStock(s.id, s.stock - sFound->stock);
-        sr.update(s);
-        // oc에 직접 반영
-        oc.updateOrder(o);
-        or_.update(o);
-        std::cout << "승인 완료: " << orderStatusToString(o.status) << "\n";
+    auto sFound = sc.findById(o.sampleId);
+    if (!sFound) { std::cout << "시료 없음\n"; return; }
+    Sample s = *sFound;
+
+    std::cout << "\n  재고 확인 중...\n";
+    std::cout << "  시료   : " << s.name << " (" << s.id << ")\n";
+    std::cout << "  현재 재고: " << s.stock << "ea\n";
+    std::cout << "  주문 수량: " << o.quantity << "ea\n";
+
+    char yn = 0;
+    if (s.stock >= o.quantity) {
+        std::cout << "  재고 충분. 승인하겠습니까?  [Y] 예약 처리  [N] 취소 > ";
+        std::cin >> yn; std::cin.ignore();
+        if (yn != 'Y' && yn != 'y') { std::cout << "취소됨\n"; return; }
     } else {
-        OrderService::reject(o);
-        oc.updateOrder(o);
-        or_.update(o);
-        std::cout << "거절 완료\n";
+        int shortage = o.quantity - s.stock;
+        int actualProd = ProductionService::calcActualProduction(shortage, s.yield);
+        double totalTime = ProductionService::calcTotalTime(s.avgProductionTimeMin, actualProd);
+        std::cout << "  부족분   : " << shortage << "ea\n";
+        std::cout << "  재고 부족. 부족분 " << shortage << "ea 승인하겠습니까?"
+                  << " (실생산량: " << actualProd << "ea / " << totalTime << "min)\n";
+        std::cout << "  [Y] 승인  [N] 주문 거절 > ";
+        std::cin >> yn; std::cin.ignore();
+        if (yn != 'Y' && yn != 'y') {
+            OrderService::reject(o);
+            oc.updateOrder(o);
+            or_.update(o);
+            std::cout << "거절 완료\n";
+            return;
+        }
     }
+
+    bool producing = (s.stock < o.quantity);
+    OrderService::approve(o, s);
+    if (producing) ps.enqueue(o, s);
+    sc.updateStock(s.id, s.stock - sFound->stock);
+    sr.update(s);
+    oc.updateOrder(o);
+    or_.update(o);
+    std::cout << "승인 완료: " << orderStatusToString(o.status) << "\n";
 }
 
 static void menuProductionLine(OrderController& oc, SampleController& sc,
@@ -106,8 +154,27 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
 static void menuRelease(OrderController& oc, OrderRepository& or_) {
     auto confirmed = oc.getByStatus(OrderStatus::CONFIRMED);
     if (confirmed.empty()) { std::cout << "\n출고 대기 주문 없음\n"; return; }
-    ConsoleView::showOrders(confirmed);
-    auto oid = ConsoleView::promptString("출고할 주문번호");
+
+    std::cout << "\n[ 출고 대기 중인 주문 목록 (CONFIRMED) ]\n";
+    std::cout << std::left << std::setw(6)  << "번호"
+              << std::setw(22) << "주문번호"
+              << std::setw(12) << "시료ID"
+              << std::setw(18) << "고객명"
+              << "수량\n";
+    std::cout << std::string(70, '-') << "\n";
+    for (int i = 0; i < (int)confirmed.size(); i++) {
+        const auto& o = confirmed[i];
+        std::cout << std::left << std::setw(6)  << ("[" + std::to_string(i + 1) + "]")
+                  << std::setw(22) << o.orderId
+                  << std::setw(12) << o.sampleId
+                  << std::setw(18) << o.customerName
+                  << o.quantity << "ea\n";
+    }
+
+    int idx = ConsoleView::promptInt("출고할 번호");
+    if (idx < 1 || idx > (int)confirmed.size()) { std::cout << "잘못된 번호\n"; return; }
+    std::string oid = confirmed[idx - 1].orderId;
+
     auto oFound = oc.findById(oid);
     if (!oFound) { std::cout << "주문 없음\n"; return; }
     Order o = *oFound;

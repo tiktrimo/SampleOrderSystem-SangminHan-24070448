@@ -1,6 +1,7 @@
 #include "ConsoleView.h"
 #include <iostream>
 #include <iomanip>
+#include <ctime>
 
 static const char* stockStatusLabel(StockStatus s) {
     if (s == StockStatus::DEPLETED) return "[고갈]";
@@ -10,8 +11,15 @@ static const char* stockStatusLabel(StockStatus s) {
 
 void ConsoleView::showMainMenu(int sampleCount, int totalStock,
                                int orderCount, int producingCount) {
+    time_t now = time(nullptr);
+    struct tm t {};
+    localtime_s(&t, &now);
+    char dtbuf[32];
+    strftime(dtbuf, sizeof(dtbuf), "%Y-%m-%d %H:%M:%S", &t);
+
     std::cout << "\n========================================\n";
     std::cout << "   S-Semi 반도체 시료 생산주문관리 시스템\n";
+    std::cout << "   " << dtbuf << "\n";
     std::cout << "========================================\n";
     std::cout << "  시료: " << sampleCount << "종  |  총재고: " << totalStock
               << "ea  |  주문: " << orderCount << "건  |  생산중: " << producingCount << "건\n";
@@ -89,13 +97,37 @@ void ConsoleView::showProductionQueue(ProductionService& ps) {
         std::cout << "  (생산 중인 항목 없음)\n";
         return;
     }
-    auto item = ps.peek();
-    std::cout << "\n[현재 생산 중]\n";
-    std::cout << "  주문번호: " << item.orderId << "\n";
-    std::cout << "  시료명  : " << item.sampleName << "\n";
-    std::cout << "  주문량  : " << item.orderQuantity << "ea\n";
-    std::cout << "  실생산량: " << item.actualProduction << "ea\n";
-    std::cout << "  생산시간: " << item.totalTimeMin << "min\n";
+    auto items = ps.getQueueItems();
+
+    std::cout << "\n[ 현재 처리 중 ]\n";
+    const auto& cur = items[0];
+    std::cout << "  주문번호: " << cur.orderId << "\n";
+    std::cout << "  시료명  : " << cur.sampleName << " (" << cur.sampleId << ")\n";
+    std::cout << "  주문량  : " << cur.orderQuantity << "ea\n";
+    std::cout << "  실생산량: " << cur.actualProduction << "ea\n";
+    std::cout << "  생산시간: " << cur.totalTimeMin << "min\n";
+
+    if (items.size() > 1) {
+        std::cout << "\n[ 대기 중인 주문 (FIFO 순) ]\n";
+        std::cout << std::left
+                  << std::setw(6)  << "순서"
+                  << std::setw(22) << "주문번호"
+                  << std::setw(15) << "시료"
+                  << std::setw(10) << "주문량"
+                  << std::setw(10) << "실생산량"
+                  << "예상시간\n";
+        std::cout << std::string(72, '-') << "\n";
+        for (int i = 1; i < (int)items.size(); i++) {
+            const auto& it = items[i];
+            std::cout << std::left
+                      << std::setw(6)  << (i + 1)
+                      << std::setw(22) << it.orderId
+                      << std::setw(15) << it.sampleName
+                      << std::setw(10) << (std::to_string(it.orderQuantity) + "ea")
+                      << std::setw(10) << (std::to_string(it.actualProduction) + "ea")
+                      << it.totalTimeMin << "min\n";
+        }
+    }
 }
 
 std::string ConsoleView::promptString(const std::string& label) {
