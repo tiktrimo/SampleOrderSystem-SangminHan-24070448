@@ -218,10 +218,7 @@ TEST(intg_restart_restores_producing_orders_from_file) {
     // 재시작 시뮬레이션: 새 컨트롤러를 파일에서 로드
     SampleController sc2; OrderController oc2; ProductionService ps2;
     for (const auto& s : env.sr.findAll()) sc2.addSample(s);
-    for (const auto& o : env.or_.findAll()) {
-        // OrderController에 직접 로드 (placeOrder 우회)
-        oc2.orders_.push_back(o);
-    }
+    oc2.loadOrders(env.or_.findAll());
     oc2.syncSequence();
 
     // PRODUCING 주문 큐 복원
@@ -444,7 +441,7 @@ TEST(intg_order_sequence_no_duplicate_after_restart) {
 
     // 재시작: 새 OrderController
     OrderController oc2;
-    for (const auto& o : env.or_.findAll()) oc2.orders_.push_back(o);
+    oc2.loadOrders(env.or_.findAll());
     oc2.syncSequence();
 
     // 재시작 후 새 주문 번호가 기존과 겹치지 않아야 함

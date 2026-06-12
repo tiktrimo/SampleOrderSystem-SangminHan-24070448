@@ -3,6 +3,10 @@
 #include <sstream>
 #include <iomanip>
 
+void OrderController::loadOrders(const std::vector<Order>& orders) {
+    orders_ = orders;
+}
+
 std::string OrderController::placeOrder(const std::string& sampleId,
                                         const std::string& customerName,
                                         int quantity) {

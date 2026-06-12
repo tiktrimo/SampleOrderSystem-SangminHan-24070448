@@ -56,8 +56,7 @@ static void autoCompleteProduction(OrderController& oc, SampleController& sc,
 
         Order o = *oFound; Sample s = *sFound;
         auto done = ps.complete(o, s);
-        for (auto& ord : oc.orders_)
-            if (ord.orderId == o.orderId) { ord = o; break; }
+        oc.updateOrder(o);
         sc.updateStock(s.id, done.actualProduction);
         or_.update(o); sr.update(s);
     }
@@ -321,8 +320,7 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
             if (oFound && sFound) {
                 Order o = *oFound; Sample s = *sFound;
                 auto done = ps.complete(o, s);
-                for (auto& ord : oc.orders_)
-                    if (ord.orderId == o.orderId) { ord = o; break; }
+                oc.updateOrder(o);
                 sc.updateStock(s.id, done.actualProduction);
                 or_.update(o); sr.update(s);
                 std::cout << "\n  " << GRN << "✓ 생산 완료  "
@@ -394,9 +392,7 @@ static void menuRelease(OrderController& oc, SampleController& sc,
         auto sUpdated = sc.findById(o.sampleId);
         if (sUpdated) sr.update(*sUpdated);
     }
-    for (auto& ord : oc.orders_) {
-        if (ord.orderId == oid) { ord = o; break; }
-    }
+    oc.updateOrder(o);
     or_.update(o);
     std::cout << "  " << BLU << "↑ 출고 완료" << RST << "  "
               << BOLD << oid << RST << "  "
@@ -430,8 +426,8 @@ int main() {
     for (const auto& s : sr.findAll()) sc.addSample(s);
 
     OrderController oc;
-    for (const auto& o : or_.findAll()) oc.orders_.push_back(o);
-    oc.syncSequence(); // 재시작 후 중복 주문번호 방지
+    oc.loadOrders(or_.findAll());
+    oc.syncSequence();
 
     ProductionService ps;
     for (const auto& o : oc.getByStatus(OrderStatus::PRODUCING)) {
