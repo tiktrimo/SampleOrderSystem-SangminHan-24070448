@@ -24,4 +24,10 @@ x86/
 ipch/
 
 # Data files
-data/*.json
+data/
+*.dat
+
+# Coverage
+*.log
+*.xml
+coverage_report/
