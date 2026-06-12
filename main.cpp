@@ -30,6 +30,25 @@ namespace {
     constexpr const char* C_BCYN = "\033[1;36m";
 }
 
+// ── 콘솔 유틸 ────────────────────────────────────────────────────────────────
+static void clsConsole() {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (!GetConsoleScreenBufferInfo(h, &csbi)) return;
+    DWORD cells = (DWORD)csbi.dwSize.X * (DWORD)csbi.dwSize.Y;
+    COORD origin{0, 0};
+    DWORD written;
+    FillConsoleOutputCharacter(h, ' ', cells, origin, &written);
+    FillConsoleOutputAttribute(h, csbi.wAttributes, cells, origin, &written);
+    SetConsoleCursorPosition(h, origin);
+}
+
+static void setCursorVisible(bool visible) {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cci{1, visible ? TRUE : FALSE};
+    SetConsoleCursorInfo(h, &cci);
+}
+
 // ── 메뉴 함수 ─────────────────────────────────────────────────────────────────
 
 static void menuSampleManage(SampleController& sc, SampleRepository& sr) {
@@ -206,13 +225,15 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
         return;
     }
 
+    setCursorVisible(false);
     while (true) {
-        std::cout << "\033[2J\033[H" << std::flush;
+        clsConsole();
 
         if (!ps.hasNext()) {
             std::cout << "\n  " << C_GRN << "✓ 모든 생산 완료" << C_RST << "\n\n";
             std::cout << "  " << C_DIM << "[아무 키] 뒤로" << C_RST;
             _getch();
+            setCursorVisible(true);
             break;
         }
 
@@ -299,7 +320,7 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
         for (int i = 0; i < 5; i++) {
             if (_kbhit()) {
                 int ch = _getch();
-                if (ch == '0') return;
+                if (ch == '0') { setCursorVisible(true); return; }
             }
             Sleep(200);
         }
