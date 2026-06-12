@@ -1,26 +1,50 @@
 #include "OrderController.h"
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 
-// STUB: 미구현 상태 (RED)
-std::string OrderController::placeOrder(const std::string&, const std::string&, int) {
-    return "";
+std::string OrderController::placeOrder(const std::string& sampleId,
+                                        const std::string& customerName,
+                                        int quantity) {
+    Order o;
+    o.orderId = generateOrderId();
+    o.sampleId = sampleId;
+    o.customerName = customerName;
+    o.quantity = quantity;
+    o.status = OrderStatus::RESERVED;
+    orders_.push_back(o);
+    return o.orderId;
 }
 
 std::vector<Order> OrderController::getAll() const {
-    return {};
+    return orders_;
 }
 
-std::vector<Order> OrderController::getByStatus(OrderStatus) const {
-    return {};
+std::vector<Order> OrderController::getByStatus(OrderStatus status) const {
+    std::vector<Order> result;
+    for (const auto& o : orders_) {
+        if (o.status == status) result.push_back(o);
+    }
+    return result;
 }
 
-std::optional<Order> OrderController::findById(const std::string&) const {
+std::optional<Order> OrderController::findById(const std::string& orderId) const {
+    for (const auto& o : orders_) {
+        if (o.orderId == orderId) return o;
+    }
     return std::nullopt;
 }
 
 int OrderController::getOrderCount() const {
-    return 0;
+    return static_cast<int>(orders_.size());
 }
 
 std::string OrderController::generateOrderId() {
-    return "";
+    std::time_t t = std::time(nullptr);
+    std::tm tm{};
+    localtime_s(&tm, &t);
+    std::ostringstream oss;
+    oss << "ORD-" << std::put_time(&tm, "%Y%m%d") << "-"
+        << std::setfill('0') << std::setw(4) << (++orderSeq_);
+    return oss.str();
 }
