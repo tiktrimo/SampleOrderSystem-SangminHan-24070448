@@ -65,8 +65,12 @@ static void menuPlaceOrder(OrderController& oc, SampleController& sc,
     int  qty  = ConsoleView::promptInt("수량");
 
     auto sFound = sc.findById(sid);
+    if (!sFound) {
+        std::cout << "  " << C_RED << "✗ 시료 없음: " << C_BOLD << sid << C_RST << "\n";
+        return;
+    }
     std::cout << "\n" << C_BWHT << "  [ 입력 확인 ]" << C_RST << "\n";
-    std::cout << "  " << C_DIM << "시료" << C_RST << "  " << (sFound ? sFound->name : "?")
+    std::cout << "  " << C_DIM << "시료" << C_RST << "  " << sFound->name
               << " " << C_DIM << "(" << sid << ")" << C_RST << "\n";
     std::cout << "  " << C_DIM << "고객" << C_RST << "  " << cust << "\n";
     std::cout << "  " << C_DIM << "수량" << C_RST << "  " << C_BOLD << qty << "ea" << C_RST << "\n";
