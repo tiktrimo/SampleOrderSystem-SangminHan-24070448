@@ -30,9 +30,10 @@ namespace {
 
 static void menuSampleManage(SampleController& sc, SampleRepository& sr) {
     std::cout << "\n" << C_BCYN << "▸ " << C_BWHT << "시료 관리"  << C_RST
-              << C_DIM  << "  (1)등록  (2)조회  (3)검색" << C_RST << " " << C_CYN << "›" << C_RST << " ";
+              << C_DIM  << "  (1)등록  (2)조회  (3)검색  (0)뒤로" << C_RST << " " << C_CYN << "›" << C_RST << " ";
     int sub = 0; std::cin >> sub; std::cin.ignore();
 
+    if (sub == 0) return;
     if (sub == 1) {
         std::cout << "\n" << C_BWHT << "  [ 시료 등록 ]" << C_RST << "\n";
         Sample s;
@@ -54,10 +55,12 @@ static void menuSampleManage(SampleController& sc, SampleRepository& sr) {
 
 static void menuPlaceOrder(OrderController& oc, SampleController& sc,
                            OrderRepository& or_) {
-    std::cout << "\n" << C_BCYN << "▸ " << C_BWHT << "주문 접수" << C_RST << "\n";
+    std::cout << "\n" << C_BCYN << "▸ " << C_BWHT << "주문 접수" << C_RST
+              << C_DIM << "  (0 입력 시 뒤로)" << C_RST << "\n";
     ConsoleView::showSamples(sc.getAll());
 
-    auto sid  = ConsoleView::promptString("시료 ID");
+    auto sid  = ConsoleView::promptString("시료 ID  (0=뒤로)");
+    if (sid == "0") return;
     auto cust = ConsoleView::promptString("고객명");
     int  qty  = ConsoleView::promptInt("수량");
 
@@ -113,7 +116,8 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
                   << o.quantity << "ea\n";
     }
 
-    int idx = ConsoleView::promptInt("승인/거절할 번호");
+    int idx = ConsoleView::promptInt("승인/거절할 번호  (0=뒤로)");
+    if (idx == 0) return;
     if (idx < 1 || idx > (int)reserved.size()) {
         std::cout << "  " << C_RED << "✗ 잘못된 번호" << C_RST << "\n";
         return;
@@ -188,7 +192,7 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
     if (!ps.hasNext()) return;
 
     std::cout << "\n  " << C_BWHT << "[1]" << C_RST << " 생산 완료 처리  "
-              << C_DIM  << "[기타]" << C_RST << " 취소 " << C_CYN << "›" << C_RST << " ";
+              << C_DIM  << "[0]" << C_RST << " 뒤로 " << C_CYN << "›" << C_RST << " ";
     int ch = 0; std::cin >> ch; std::cin.ignore();
     if (ch != 1) return;
 
@@ -239,7 +243,8 @@ static void menuRelease(OrderController& oc, OrderRepository& or_) {
                   << o.quantity << "ea\n";
     }
 
-    int idx = ConsoleView::promptInt("출고할 번호");
+    int idx = ConsoleView::promptInt("출고할 번호  (0=뒤로)");
+    if (idx == 0) return;
     if (idx < 1 || idx > (int)confirmed.size()) {
         std::cout << "  " << C_RED << "✗ 잘못된 번호" << C_RST << "\n";
         return;
