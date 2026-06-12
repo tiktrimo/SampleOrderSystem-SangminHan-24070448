@@ -77,6 +77,7 @@
     <ClCompile Include="tests\test_order.cpp" />
     <ClCompile Include="tests\test_order_service.cpp" />
     <ClCompile Include="tests\test_production.cpp" />
+    <ClCompile Include="tests\test_monitor.cpp" />
     <ClCompile Include="src\model\Order.cpp" />
     <ClCompile Include="src\controller\SampleController.cpp" />
     <ClCompile Include="src\repository\SampleRepository.cpp" />
@@ -84,6 +85,7 @@
     <ClCompile Include="src\repository\OrderRepository.cpp" />
     <ClCompile Include="src\service\OrderService.cpp" />
     <ClCompile Include="src\service\ProductionService.cpp" />
+    <ClCompile Include="src\service\MonitorService.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tests\TestRunner.h" />
