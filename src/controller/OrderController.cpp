@@ -35,6 +35,13 @@ std::optional<Order> OrderController::findById(const std::string& orderId) const
     return std::nullopt;
 }
 
+bool OrderController::updateOrder(const Order& order) {
+    for (auto& o : orders_) {
+        if (o.orderId == order.orderId) { o = order; return true; }
+    }
+    return false;
+}
+
 int OrderController::getOrderCount() const {
     return static_cast<int>(orders_.size());
 }

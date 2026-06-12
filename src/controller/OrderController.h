@@ -12,9 +12,9 @@ public:
     std::vector<Order> getAll() const;
     std::vector<Order> getByStatus(OrderStatus status) const;
     std::optional<Order> findById(const std::string& orderId) const;
+    bool updateOrder(const Order& order);
     int getOrderCount() const;
 
-protected:
     std::vector<Order> orders_;
 
 private:
