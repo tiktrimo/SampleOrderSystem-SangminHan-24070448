@@ -12,6 +12,7 @@ public:
                              int orderCount, int producingCount);
     static void showSamples(const std::vector<Sample>& samples);
     static void showOrders(const std::vector<Order>& orders);
+    static void showSelectableOrderList(const std::vector<Order>& orders);
     static void showMonitor(const MonitorSnapshot& snap);
     static void showProductionQueue(ProductionService& ps);
 

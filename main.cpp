@@ -146,24 +146,7 @@ static void menuApproveReject(OrderController& oc, SampleController& sc,
 
     std::cout << "\n" << BCYN << "▸ " << BWHT << "승인 대기 목록" << RST
               << DWHT << "  RESERVED " << reserved.size() << "건" << RST << "\n";
-    // 헤더
-    std::cout << DWHT
-              << std::left << std::setw(6)  << "번호"
-              << std::setw(22) << "주문번호"
-              << std::setw(12) << "시료ID"
-              << std::setw(18) << "고객명"
-              << "수량" << RST << "\n";
-    std::cout << DWHT;
-    for (int i = 0; i < 64; i++) std::cout << "─";
-    std::cout << RST << "\n";
-    for (int i = 0; i < (int)reserved.size(); i++) {
-        const auto& o = reserved[i];
-        std::cout << BWHT << std::left << std::setw(6) << ("[" + std::to_string(i+1) + "]") << RST
-                  << std::setw(22) << o.orderId
-                  << std::setw(12) << o.sampleId
-                  << std::setw(18) << o.customerName
-                  << o.quantity << "ea\n";
-    }
+    ConsoleView::showSelectableOrderList(reserved);
 
     int idx = ConsoleView::promptInt("승인/거절할 번호  (0=뒤로)");
     if (idx == 0) return;
@@ -352,23 +335,7 @@ static void menuRelease(OrderController& oc, SampleController& sc,
 
     std::cout << "\n" << BCYN << "▸ " << BWHT << "출고 대기 목록" << RST
               << DWHT << "  CONFIRMED " << confirmed.size() << "건" << RST << "\n";
-    std::cout << DWHT
-              << std::left << std::setw(6)  << "번호"
-              << std::setw(22) << "주문번호"
-              << std::setw(12) << "시료ID"
-              << std::setw(18) << "고객명"
-              << "수량" << RST << "\n";
-    std::cout << DWHT;
-    for (int i = 0; i < 64; i++) std::cout << "─";
-    std::cout << RST << "\n";
-    for (int i = 0; i < (int)confirmed.size(); i++) {
-        const auto& o = confirmed[i];
-        std::cout << BWHT << std::left << std::setw(6) << ("[" + std::to_string(i+1) + "]") << RST
-                  << std::setw(22) << o.orderId
-                  << std::setw(12) << o.sampleId
-                  << std::setw(18) << o.customerName
-                  << o.quantity << "ea\n";
-    }
+    ConsoleView::showSelectableOrderList(confirmed);
 
     int idx = ConsoleView::promptInt("출고할 번호  (0=뒤로)");
     if (idx == 0) return;

@@ -220,6 +220,25 @@ void ConsoleView::showOrders(const std::vector<Order>& orders) {
     }
 }
 
+// ── showSelectableOrderList ───────────────────────────────────────────────────
+void ConsoleView::showSelectableOrderList(const std::vector<Order>& orders) {
+    std::cout << DWHT
+              << std::left << std::setw(6)  << "번호"
+              << std::setw(22) << "주문번호"
+              << std::setw(12) << "시료ID"
+              << std::setw(18) << "고객명"
+              << "수량" << RST << "\n";
+    hline(64);
+    for (int i = 0; i < (int)orders.size(); i++) {
+        const auto& o = orders[i];
+        std::cout << BWHT << std::left << std::setw(6) << ("[" + std::to_string(i + 1) + "]") << RST
+                  << std::setw(22) << o.orderId
+                  << std::setw(12) << o.sampleId
+                  << std::setw(18) << o.customerName
+                  << o.quantity << "ea\n";
+    }
+}
+
 // ── showMonitor ───────────────────────────────────────────────────────────────
 void ConsoleView::showMonitor(const MonitorSnapshot& snap) {
     sectionHeader("주문 현황");
