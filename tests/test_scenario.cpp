@@ -39,7 +39,7 @@ TEST(scenario_sufficient_stock_full_flow) {
 
     doApprove(oid, oc, sc, ps);
     ASSERT_EQ(oc.findById(oid)->status, OrderStatus::CONFIRMED);
-    ASSERT_EQ(sc.findById("S-001")->stock, 70);
+    ASSERT_EQ(sc.findById("S-001")->stock, 100); // 재고는 출고 시에만 차감
     ASSERT_EQ(ps.queueSize(), 0);
 
     Order o = *oc.findById(oid);
@@ -58,7 +58,7 @@ TEST(scenario_insufficient_stock_production_full_flow) {
     doApprove(oid, oc, sc, ps);
 
     ASSERT_EQ(oc.findById(oid)->status, OrderStatus::PRODUCING);
-    ASSERT_EQ(sc.findById("S-001")->stock, 0);
+    ASSERT_EQ(sc.findById("S-001")->stock, 10); // 재고는 출고 시에만 차감
     ASSERT_EQ(ps.queueSize(), 1);
 
     // 생산 완료
@@ -127,23 +127,24 @@ TEST(scenario_fifo_production_queue_three_orders) {
     ASSERT_EQ(ps.queueSize(), 0);
 }
 
-// ─── Scenario 5: 연속 승인 — 재고 부분 차감 후 고갈 ─────────────────────────
+// ─── Scenario 5: 연속 승인 — 재고 차감 없음, 출고 시 차감 ───────────────────
 
-TEST(scenario_sequential_approval_stock_depletion) {
+TEST(scenario_sequential_approval_no_stock_deduction) {
     SampleController sc; OrderController oc; ProductionService ps;
     sc.addSample(makeSample("S-001", 100));
 
     std::string o1 = oc.placeOrder("S-001", "A사", 60);
     std::string o2 = oc.placeOrder("S-001", "B사", 50);
 
+    // 승인 시 재고 차감 없음
     doApprove(o1, oc, sc, ps);
     ASSERT_EQ(oc.findById(o1)->status, OrderStatus::CONFIRMED);
-    ASSERT_EQ(sc.findById("S-001")->stock, 40); // 100-60=40
+    ASSERT_EQ(sc.findById("S-001")->stock, 100); // 재고 유지
 
     doApprove(o2, oc, sc, ps);
-    ASSERT_EQ(oc.findById(o2)->status, OrderStatus::PRODUCING); // 40<50
-    ASSERT_EQ(sc.findById("S-001")->stock, 0); // 전량 차감
-    ASSERT_EQ(ps.queueSize(), 1);
+    ASSERT_EQ(oc.findById(o2)->status, OrderStatus::CONFIRMED); // 100>=50 → CONFIRMED
+    ASSERT_EQ(sc.findById("S-001")->stock, 100); // 여전히 차감 없음
+    ASSERT_EQ(ps.queueSize(), 0);
 }
 
 // ─── Scenario 6: 다중 시료 모니터링 스냅샷 ───────────────────────────────────
@@ -288,6 +289,6 @@ TEST(scenario_exact_stock_match_becomes_confirmed) {
     doApprove(oid, oc, sc, ps);
 
     ASSERT_EQ(oc.findById(oid)->status, OrderStatus::CONFIRMED);
-    ASSERT_EQ(sc.findById("S-001")->stock, 0);
+    ASSERT_EQ(sc.findById("S-001")->stock, 50); // 재고는 출고 시에만 차감
     ASSERT_EQ(ps.queueSize(), 0);
 }

@@ -31,11 +31,11 @@ TEST(approve_sufficient_stock_becomes_confirmed) {
     ASSERT_EQ(o.status, OrderStatus::CONFIRMED);
 }
 
-TEST(approve_sufficient_stock_deducts_stock) {
+TEST(approve_sufficient_stock_does_not_change_stock) {
     Order o = makeReservedOrder("ORD-001", "S-001", 50);
     Sample s = makeSample("S-001", 100);
     OrderService::approve(o, s);
-    ASSERT_EQ(s.stock, 50);
+    ASSERT_EQ(s.stock, 100); // 재고는 출고 시에만 차감
 }
 
 TEST(approve_exact_stock_becomes_confirmed) {
@@ -44,7 +44,7 @@ TEST(approve_exact_stock_becomes_confirmed) {
     bool ok = OrderService::approve(o, s);
     ASSERT_TRUE(ok);
     ASSERT_EQ(o.status, OrderStatus::CONFIRMED);
-    ASSERT_EQ(s.stock, 0);
+    ASSERT_EQ(s.stock, 100); // 재고는 출고 시에만 차감
 }
 
 TEST(approve_insufficient_stock_becomes_producing) {
@@ -55,11 +55,11 @@ TEST(approve_insufficient_stock_becomes_producing) {
     ASSERT_EQ(o.status, OrderStatus::PRODUCING);
 }
 
-TEST(approve_insufficient_stock_deducts_all_stock) {
+TEST(approve_insufficient_stock_does_not_change_stock) {
     Order o = makeReservedOrder("ORD-001", "S-001", 200);
     Sample s = makeSample("S-001", 50);
     OrderService::approve(o, s);
-    ASSERT_EQ(s.stock, 0);
+    ASSERT_EQ(s.stock, 50); // 재고는 출고 시에만 차감
 }
 
 TEST(approve_only_reserved_orders) {
