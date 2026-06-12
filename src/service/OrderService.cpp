@@ -1,14 +1,26 @@
 #include "OrderService.h"
 
-// STUB: 미구현 상태 (RED)
-bool OrderService::approve(Order&, Sample&) {
-    return false;
+bool OrderService::approve(Order& order, Sample& sample) {
+    if (order.status != OrderStatus::RESERVED) return false;
+
+    if (sample.stock >= order.quantity) {
+        sample.stock -= order.quantity;
+        order.status = OrderStatus::CONFIRMED;
+    } else {
+        sample.stock = 0;
+        order.status = OrderStatus::PRODUCING;
+    }
+    return true;
 }
 
-bool OrderService::reject(Order&) {
-    return false;
+bool OrderService::reject(Order& order) {
+    if (order.status != OrderStatus::RESERVED) return false;
+    order.status = OrderStatus::REJECTED;
+    return true;
 }
 
-bool OrderService::release(Order&) {
-    return false;
+bool OrderService::release(Order& order) {
+    if (order.status != OrderStatus::CONFIRMED) return false;
+    order.status = OrderStatus::RELEASE;
+    return true;
 }
