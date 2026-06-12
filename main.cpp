@@ -19,6 +19,11 @@
 
 namespace {
     using namespace Clr;
+
+    constexpr int POLL_INTERVAL_MS         = 200;
+    constexpr int POLL_TICKS               = 5;
+    constexpr int COMPLETE_DISPLAY_DURATION_MS = 1500;
+    constexpr int PRODUCTION_LINE_WIDTH    = 54;
 }
 
 // ── 콘솔 유틸 ────────────────────────────────────────────────────────────────
@@ -255,7 +260,7 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
 
         // ── 현재 처리 중 박스
         std::cout << CYN << "⚙ " << BWHT << "현재 처리 중" << RST << "\n";
-        std::cout << DWHT; for (int i = 0; i < 54; i++) std::cout << "─"; std::cout << RST << "\n";
+        std::cout << DWHT; for (int i = 0; i < PRODUCTION_LINE_WIDTH; i++) std::cout << "─"; std::cout << RST << "\n";
         std::cout << "  " << DWHT << "주문번호  " << RST << CYN << BOLD << item.orderId  << RST << "\n";
         std::cout << "  " << DWHT << "시료      " << RST << item.sampleName
                   << " " << DWHT << "(" << item.sampleId << ")" << RST << "\n";
@@ -279,14 +284,14 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
         else
             std::cout << GRN << "  완료 처리 중..." << RST;
         std::cout << "\n";
-        std::cout << DWHT; for (int i = 0; i < 54; i++) std::cout << "─"; std::cout << RST << "\n";
+        std::cout << DWHT; for (int i = 0; i < PRODUCTION_LINE_WIDTH; i++) std::cout << "─"; std::cout << RST << "\n";
 
         // ── 대기 큐
         auto items = ps.getQueueItems();
         if ((int)items.size() > 1) {
             std::cout << "\n" << BWHT << "대기 중인 주문" << RST
                       << DWHT << "  (FIFO)  " << (items.size() - 1) << "건" << RST << "\n";
-            std::cout << DWHT; for (int i = 0; i < 54; i++) std::cout << "─"; std::cout << RST << "\n";
+            std::cout << DWHT; for (int i = 0; i < PRODUCTION_LINE_WIDTH; i++) std::cout << "─"; std::cout << RST << "\n";
             std::cout << DWHT << std::left
                       << std::setw(5)  << "순서"
                       << std::setw(24) << "주문번호"
@@ -310,17 +315,17 @@ static void menuProductionLine(OrderController& oc, SampleController& sc,
                       << BOLD << item.orderId << RST << "  " << GRN << "→ CONFIRMED" << RST << "\n";
             std::cout << std::flush;
             autoCompleteProduction(oc, sc, or_, sr, ps);
-            Sleep(1500);
+            Sleep(COMPLETE_DISPLAY_DURATION_MS);
             continue;
         }
 
         // ── 200ms 간격으로 키 체크, 총 1초 대기
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < POLL_TICKS; i++) {
             if (_kbhit()) {
                 int ch = _getch();
                 if (ch == '0') { setCursorVisible(true); return; }
             }
-            Sleep(200);
+            Sleep(POLL_INTERVAL_MS);
         }
     }
 }
